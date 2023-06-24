@@ -1,0 +1,93 @@
+.accountDetails {
+  width: 60%;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.accountDetails h2 {
+  font-size: 50px;
+  color: #0f332d;
+  margin-bottom: 40px;
+}
+
+.userAddress {
+  margin-bottom: 40px;
+  border-bottom: 1px solid #0f332db0;
+  padding-bottom: 30px;
+}
+
+.userAddress span {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.userAddress p {
+  margin-top: 10px;
+  font-size: 22px;
+}
+
+.userStats {
+  display: flex;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #0f332db0;
+  padding-bottom: 30px;
+}
+
+.accountStat {
+  margin-right: 50px;
+}
+
+.accountStat span {
+  font-size: 17px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.accountStat p {
+  font-size: 50px;
+  color: #4ada85;
+}
+
+.accountFunding {
+  display: flex;
+}
+
+.accountFunding h4 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.fundAccount {
+  margin-right: 100px;
+}
+
+.inputAnButton {
+  display: flex;
+}
+
+.inputAnButton button {
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #fff;
+  margin: 0px 8px;
+}
+
+.inputAnButton input {
+  background-color: #eeeeee;
+  font-size: 16px;
+  color: #000000;
+  width: 150px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.fundAccount button {
+  background-color: #0f332d;
+}
+
+.withdrawAccount button {
+  background-color: #4ada85;
+}

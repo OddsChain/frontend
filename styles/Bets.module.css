@@ -1,0 +1,21 @@
+.betsBar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #4ada85;
+  height: 60px;
+}
+
+.notSelected {
+  color: #fff;
+  margin: 0px 18px;
+  cursor: pointer;
+}
+
+.selected {
+  color: #0f332d;
+  font-weight: bold;
+  margin: 0px 18px;
+  cursor: pointer;
+}

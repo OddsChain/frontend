@@ -1,0 +1,627 @@
+.main {
+  width: 100%;
+}
+
+.openBets {
+  display: flex;
+  justify-content: center;
+  margin: 30px auto;
+  width: 85%;
+}
+
+.openBetsBlur {
+  display: flex;
+  justify-content: center;
+  margin: 30px auto;
+  width: 85%;
+  filter: blur(2px);
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  margin-right: 50px;
+  width: 40%;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  margin: 12px 0px;
+}
+
+.searchTitle h3 {
+  margin-bottom: 10px;
+}
+
+.searchTitle input {
+  background-color: #eeeeee;
+  font-size: 16px;
+  color: #000000;
+  width: 350px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.searchTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 12px 0px;
+}
+
+.title h3,
+.searchTitle h3 {
+  font-size: 30px;
+  margin-right: 10px;
+}
+
+.title img,
+.searchTitle img {
+  width: 35px;
+}
+
+.bets {
+  display: flex;
+  flex-direction: column;
+  height: 550px;
+  overflow-y: auto;
+  padding-right: 20px;
+}
+
+.bet {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0px;
+  border-radius: 10px;
+  border: 0.5px solid #0f332da1;
+  padding: 20px 15px;
+}
+
+.selectedBetIndex {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0px;
+  border-radius: 10px;
+  border: 0.5px solid #0f332da1;
+  padding: 20px 15px;
+  background-color: #e8e8e8;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0px;
+  margin-right: 15px;
+}
+
+.stat span {
+  font-size: 12px;
+  color: #0f332d;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.stat p {
+  font-size: 15px;
+}
+
+.betStats {
+  display: flex;
+  align-items: center;
+}
+
+.betStats button {
+  margin-left: 30px;
+  background-color: #0f332d;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.betStats button:hover {
+  background-color: #fff;
+  color: #0f332d;
+  border: 1px solid #0f332d;
+}
+
+.right {
+  width: 40%;
+}
+
+.right h2 {
+  margin: 20px 0px;
+}
+
+.selectedBet {
+  display: flex;
+  flex-direction: column;
+  border-radius: 7px;
+  border: 1px solid #0f332dab;
+  padding: 30px;
+  height: 520px;
+}
+
+.betDetails {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.betDetailsTitle {
+  margin-right: 10px;
+}
+
+.betDetails span {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.betDetails .id {
+  color: #4ada85;
+}
+
+.betDetails p {
+  font-size: 16px;
+}
+
+.betDetails .up {
+  margin-bottom: 6px;
+}
+
+.selectedBetStats {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.selectedBetStat {
+  margin: 20px 30px 10px 0px;
+}
+
+.selectedBetStat SPAN {
+  color: #4ada85;
+  font-weight: bold;
+}
+
+.validators {
+  display: flex;
+}
+
+.validators p {
+  margin-top: 5px;
+  margin-right: 13px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.joinBet {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.joinBet input {
+  background-color: #eeeeee;
+  font-size: 16px;
+  color: #000000;
+  width: 120px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.joinBet p {
+  margin: 0px 10px;
+}
+
+.joinBet button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  color: #fff;
+}
+
+.joinBet button:hover {
+  scale: 1.05;
+}
+
+.joinBet .yes {
+  background-color: #4ada85;
+}
+
+.joinBet .no {
+  background-color: #0f332d;
+}
+
+.currentPossibleRewards {
+  color: #000000;
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 30px;
+}
+
+.currentPossibleRewards span {
+  color: #4ada85;
+  font-size: 18px;
+}
+
+.amountWon {
+  color: #000000;
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 13px;
+  margin-right: 18px;
+}
+
+.amountWon span {
+  color: #4ada85;
+  font-size: 18px;
+}
+
+.claimWinnings {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #fff;
+  background-color: #0f332d;
+  margin-right: 10px;
+  margin-top: 13px;
+  width: 160px;
+}
+
+.placeBet {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 15px;
+  width: 130px;
+  color: #fff;
+  background-color: #000000;
+  margin-top: 20px;
+}
+
+.validationCount {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 10px 0px;
+}
+
+.validationCount span {
+  color: #1f5afe;
+}
+
+/* POP UP */
+
+.createPopUp {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  position: absolute;
+  top: 20%;
+  left: 35%;
+  background-color: #fff;
+  z-index: 3;
+  padding: 30px 50px;
+  box-shadow: 1px 1px 20px #d8d8d8;
+  border-radius: 10px;
+  width: 35%;
+}
+
+.popUpTitle {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0px;
+}
+
+.popUpTitle h3 {
+  color: #4ada85;
+  font-weight: bolder;
+  font-size: 30px;
+}
+
+.popUpTitle img {
+  width: 30px;
+  height: 30px;
+}
+
+.popUpBetType p {
+  font-size: 14px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.popUpBetType .options {
+  display: flex;
+  align-items: baseline;
+}
+
+.popUpBetType .options button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  color: #fff;
+  margin-right: 10px;
+}
+
+.public {
+  background-color: #4ada85;
+}
+
+.private {
+  background-color: #0f332d;
+}
+
+.popUpBetType .options p {
+  font-size: 18px;
+}
+
+.popUpBetType .options span {
+  color: #4ada85;
+  font-weight: bold;
+}
+
+.betCreationFee {
+  font-size: 18px;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+.betCreationFee span {
+  color: #4ada85;
+}
+
+.popUpDescription {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.popUpDescription p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.popUpDescription textarea {
+  background-color: #f1f1f1;
+  height: 110px;
+  width: 90%;
+  border-radius: 8px;
+  color: #000000;
+  font-size: 16px;
+  padding: 10px 15px;
+}
+
+.popUpValidators {
+  margin-top: 25px;
+  width: 100%;
+}
+
+.popUpValidators p {
+  font-size: 14px;
+}
+
+.popUpValidatorsInput {
+  display: flex;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.popUpValidatorsInput input {
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 10px 8px;
+  background-color: #eeeeee;
+  margin-right: 10px;
+  width: 65%;
+}
+
+.popUpValidatorsInput button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  color: #fff;
+  margin-right: 10px;
+  background-color: #4ada85;
+}
+
+.addedValidators {
+  margin-top: 20px;
+}
+
+.addedValidators p {
+  margin-bottom: 5px;
+}
+
+.betEntranceTime {
+  margin: 10px 0px;
+}
+
+.betEntranceTime p {
+  font-size: 14px;
+}
+
+.betEntranceTime .inputAndDisplay {
+  display: flex;
+  align-items: baseline;
+}
+
+.betEntranceTime .inputAndDisplay p {
+  font-size: 17px;
+}
+
+.betEntranceTime input {
+  background-color: #e8e8e8;
+  padding: 10px;
+  font-size: 15px;
+  margin-top: 10px;
+  border-radius: 8px;
+  margin-right: 20px;
+}
+
+.createButton {
+  background-color: #0f332d;
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.amountWonAndClaimWinnings {
+  display: flex;
+  align-items: center;
+}
+
+.awaitingAcceptanceDetails {
+  display: flex;
+  flex-direction: column;
+  margin-top: 40px;
+}
+
+.awaitingAcceptanceDetails h3 {
+  margin: 12px 0px;
+}
+
+.awaitingAcceptanceDetails p {
+  color: #0f332d;
+}
+
+.awaitingAcceptanceDetails img,
+.loading {
+  width: 62px;
+  margin-left: -10px;
+  margin-bottom: 20px;
+  margin-right: 5px;
+}
+
+.challenged {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.acceptOrDenyDesc {
+  margin-top: 30px;
+}
+
+.acceptOrDeny {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.acceptOrDenyDesc h3 {
+  margin-bottom: 10px;
+}
+
+.acceptOrDeny button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  color: #fff;
+}
+
+.acceptOrDeny p {
+  margin: 0px 10px;
+}
+
+.accept {
+  background-color: #4ada85;
+}
+
+.deny {
+  background-color: #0f332d;
+}
+
+.validateButton {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  color: #fff;
+  background-color: #4ada85;
+  margin-top: 20px;
+}
+
+.validateButton:hover {
+  background-color: #0f332d;
+}
+
+.reportBetForm {
+  display: flex;
+  flex-direction: column;
+  margin: 30px 0px;
+  border: 1px solid #0f332dc2;
+  border-radius: 8px;
+  padding: 30px 40px;
+}
+
+.reportBetForm p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.reportBetForm button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 17px;
+  color: #fff;
+  background-color: #4ada85;
+  width: 120px;
+}
+
+.reportBetForm input {
+  background-color: #e7e7e7;
+  padding: 10px 10px;
+  font-size: 16px;
+  width: 200px;
+  border-radius: 10px;
+  color: #000000;
+  margin-right: 20px;
+  margin-bottom: 40px;
+}
+
+.reportBetForm textarea {
+  height: 170px;
+  border-radius: 8px;
+  width: 90%;
+  background-color: #f1f1f1;
+  margin-bottom: 40px;
+  font-size: 16px;
+  padding: 8px 12px;
+}
+
+.voted {
+  font-size: 20px;
+  margin-top: 20px;
+  font-weight: 600;
+}
+
+.voteDecision {
+  margin-top: 28px;
+  display: flex;
+  align-items: baseline;
+}
+
+.voteDecision p {
+  font-size: 18px;
+}
+
+.voteDecision button {
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #fff;
+  width: 120px;
+  margin: 0px 8px;
+}
+
+.disagree {
+  background-color: #0f332d;
+}
+
+.agree {
+  background-color: #4ada85;
+}

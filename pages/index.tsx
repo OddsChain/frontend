@@ -1,11 +1,24 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import Head from "next/head";
+import styles from "@/styles/Home.module.css";
+import { MetaMaskConnector } from "wagmi/connectors/metaMask";
+import { useAccount, useConnect } from "wagmi";
+import { Navbar } from "@/components/Navbar";
 
 export default function Home() {
+  const connector = new MetaMaskConnector();
+  const { connect, error, isLoading, pendingConnector } = useConnect();
+  const { address } = useAccount({
+    onConnect({ address }) {
+      // @ts-ignore
+      localStorage.setItem("connected", address);
+    },
+    // @ts-ignore
+    onDisconnect({ address }) {
+      // @ts-ignore
+      localStorage.setItem("connected", ADDRESS_ZERO);
+    },
+  });
+
   return (
     <>
       <Head>
@@ -14,101 +27,35 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
+      <main className={styles.landingPage}>
+        <Navbar />
+
+        <div className={styles.hero}>
+          <div className={styles.txt}>
+            <p className={styles.topText}>Bet on Your Terms:</p>
+            <p className={styles.middleText}>
+              Where Your Imagination Sets the Betting Stage
+            </p>
+            <p className={styles.bottomText}>
+              Create any bet of your choice not being restricted to bets
+              provided by the application, have private validators for your
+              private bets and public validators for public ones. Earn & Start
+              betting limitlessly!
+            </p>
+            <a href="" className={styles.getStarted}>
+              Get Started &gt;
             </a>
           </div>
+
+          <img src="/illustrations/heroImage.jpg" />
         </div>
 
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
+        <div className={styles.footer}>
+          <a href="https://www.freepik.com/free-vector/stability-concept-illustration_44954733.htm#&position=0&from_view=search&track=ais">
+            Image by storyset on Freepik
           </a>
         </div>
       </main>
     </>
-  )
+  );
 }

@@ -1,0 +1,81 @@
+.navBar {
+  width: 100%;
+  padding: 25px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 30px;
+  font-weight: bolder;
+  color: #0f332d;
+}
+
+.centerLinks {
+  display: flex;
+  align-items: center;
+}
+
+.centerLinks a {
+  margin: 0px 15px;
+  font-size: 17px;
+  color: #0f332d;
+}
+
+.centerLinks a:hover {
+  scale: 1.1;
+  font-weight: bold;
+}
+
+.endButtons {
+  display: flex;
+  align-items: center;
+}
+
+.docs {
+  color: #fff;
+  background-color: #0f332d;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 17px;
+  margin: 0px 4px;
+}
+
+.docs:hover {
+  scale: 1.05;
+}
+
+.connect {
+  color: #0f332d;
+  background-color: #fff;
+  border-radius: 20px;
+  border: 1px solid #0f332d;
+  padding: 9px 20px;
+  font-size: 17px;
+  margin: 0px 10px;
+  cursor: pointer;
+}
+
+.connect:hover {
+  scale: 1.05;
+}
+
+.addr {
+  color: #fff;
+  background-color: #0f332d;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-size: 17px;
+  margin: 0px 4px;
+}
+
+.balance {
+  color: #0f332d;
+  background-color: #fff;
+  border-radius: 20px;
+  border: 1px solid #0f332d;
+  padding: 9px 20px;
+  font-size: 17px;
+  margin: 0px 10px;
+}

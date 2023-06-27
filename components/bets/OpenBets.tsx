@@ -1,13 +1,26 @@
-import { OPEN_BETS } from "@/fakeData";
+import React, { useState } from "react";
+import {
+  BET_CREATION_FEE,
+  ODDS_ADDRESS,
+  getBetEndDate,
+  truncateAddr,
+} from "@/utils";
+import { GET_OPEN_BETS } from "@/queries";
+import { useQuery } from "@apollo/client";
+import {
+  useAccount,
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+} from "wagmi";
+import { ODDS_ABI } from "@/abi";
 import styles from "../../styles/components/bets/Bets.module.css";
-import { useState } from "react";
-import { BET_CREATION_FEE, getBetEndDate, truncateAddr } from "@/utils";
 
 export const OpenBets = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
   const [selecetdBet, setSelectedBet] = useState();
   const [betAmount, setBetAmount] = useState<string>();
-  const [userChoice, setUserChoice] = useState<string>();
+  const [userChoice, setUserChoice] = useState<boolean>();
   const [betType, setBetType] = useState<boolean>(false);
   const [betEndTime, setBetEndTime] = useState<string>();
 
@@ -15,6 +28,7 @@ export const OpenBets = () => {
   const [privateValidators, setPrivateValidators] = useState([]);
   const [validatorInput, setValidatorInput] = useState("");
   const [isCollectionComplete, setCollectionComplete] = useState(false);
+  const [betDescription, setBetDescription] = useState("");
 
   const handleAddValidator = () => {
     if (privateValidators.length < 3) {
@@ -33,9 +47,78 @@ export const OpenBets = () => {
 
   const [popUp, setPopUp] = useState<boolean>(false);
 
-  // TEST VARIABLES
-  const currentTimestamp = 1687476088;
-  const currentPossibleRewards = 10000000000000000000;
+  const { address } = useAccount();
+
+  ///////// SMART CONTRACT READ FUNCTIONS ///////////
+
+  // GET CURRENT TIMESTAMP
+  const { data: currentTimestamp } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getCurrentTimeStamp",
+  });
+
+  // GET USER POSSIBLE REWARDS
+  const { data: currentPossibleRewards } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getUserPossibleRewards",
+    // @ts-ignore
+    args: [betAmount, selecetdBet && selecetdBet.betID, address, userChoice],
+  });
+
+  ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
+
+  const { config: createBetConfig } = usePrepareContractWrite({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "createSingleBet",
+    args: [
+      {
+        description: betDescription,
+        betType: betType,
+        betEndTime: betEndTime,
+        validators: privateValidators,
+      },
+    ],
+  });
+  const { write: createBet } = useContractWrite(createBetConfig);
+
+  // JOIN BET
+  const { config: joinBetConfig } = usePrepareContractWrite({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "joinSingleBet",
+    args: [selecetdBet && selecetdBet.betID, betAmount * 10 ** 18, userChoice],
+  });
+  const { write: joinBet } = useContractWrite(joinBetConfig);
+
+  // APOLLO QUERY - GET OPEN BETS
+  const {
+    loading,
+    error,
+    data: OPEN_BETS,
+  } = useQuery(GET_OPEN_BETS, {
+    // @ts-ignore
+    variables: { currentTimestamp: parseInt(currentTimestamp) },
+  });
+
+  // SPECIFIC FUNCTIONS
+  const calculateYesPercentage = (
+    yesParticipants: string,
+    noParticipants: string
+  ) => {
+    let result =
+      (parseInt(yesParticipants) * 100) /
+      (parseInt(noParticipants) + parseInt(yesParticipants));
+
+    if (result) {
+      return result.toFixed(2);
+    } else {
+      return "0";
+    }
+  };
+  console.log(OPEN_BETS);
 
   return (
     <main className={styles.main}>
@@ -48,8 +131,9 @@ export const OpenBets = () => {
           </div>
 
           <div className={styles.bets}>
-            {OPEN_BETS &&
-              OPEN_BETS.map((bet, index) => {
+            {OPEN_BETS && OPEN_BETS.bets && OPEN_BETS.bets.length > 0 ? (
+              // @ts-ignore
+              OPEN_BETS.bets.map((bet, index) => {
                 return (
                   <div
                     className={
@@ -82,7 +166,9 @@ export const OpenBets = () => {
 
                       <div className={styles.stat}>
                         <span>Participants</span>
-                        <p>{bet.participants.length}</p>
+                        <p>
+                          {bet.participants ? bet.participants.toString() : "0"}
+                        </p>
                       </div>
 
                       <button
@@ -97,7 +183,10 @@ export const OpenBets = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+            ) : (
+              <p>No Open Bets</p>
+            )}
           </div>
         </div>
 
@@ -125,18 +214,15 @@ export const OpenBets = () => {
               </div>
 
               {/* bet stats */}
+
               <div className={styles.selectedBetStats}>
                 <div className={styles.selectedBetStat}>
                   <span>Yes Percentage</span>
 
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.yesParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.yesParticipants,
+                      selecetdBet.noParticipants
                     )}{" "}
                     %
                   </p>
@@ -145,13 +231,9 @@ export const OpenBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>No Percentage</span>
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.noParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.noParticipants,
+                      selecetdBet.yesParticipants
                     )}{" "}
                     %
                   </p>
@@ -160,13 +242,14 @@ export const OpenBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Validators</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.validators.length}</p>
+                  <p>{selecetdBet.validators}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
                   <span>End Time</span>
                   <p>
                     {currentTimestamp &&
+                      selecetdBet.endTime &&
                       getBetEndDate(
                         // @ts-ignore
                         parseInt(selecetdBet.endTime.toString()) -
@@ -184,7 +267,7 @@ export const OpenBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Participants</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.participants.length}</p>
+                  <p>{selecetdBet.participants}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -209,21 +292,9 @@ export const OpenBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Creator</span>
                   {/* @ts-ignore */}
-                  <p>{truncateAddr(selecetdBet.creator)}</p>
-                </div>
-
-                <div className={styles.selectedBetStat}>
-                  <span>Validator(s)</span>
-                  <div className={styles.validators}>
-                    {/* @ts-ignore */}
-                    {selecetdBet.validators.map((validator, index) => {
-                      return (
-                        <p>
-                          {index + 1}. {truncateAddr(validator)}
-                        </p>
-                      );
-                    })}
-                  </div>
+                  {selecetdBet.creator && (
+                    <p>{truncateAddr(selecetdBet.creator)}</p>
+                  )}
                 </div>
               </div>
 
@@ -233,21 +304,25 @@ export const OpenBets = () => {
                   <input
                     placeholder="Amount"
                     type="number"
-                    onChange={(e) => setBetAmount(e.target.value)}
+                    onChange={(e) => setBetAmount(e.target.value.toString())}
                   />
                   <button
                     className={styles.yes}
-                    onClick={() => setUserChoice("1")}
+                    onClick={() => setUserChoice(true)}
                   >
                     Yes
                   </button>
                   <p>Or</p>
                   <button
                     className={styles.no}
-                    onClick={() => setUserChoice("2")}
+                    onClick={() => setUserChoice(false)}
                   >
                     No
                   </button>
+
+                  {userChoice == true && <p>Selected Choice: Yes</p>}
+
+                  {userChoice == false && <p>Selected Choice: No</p>}
                 </div>
               ) : (
                 <p>Bet Entry Time Just Concluded!</p>
@@ -256,11 +331,19 @@ export const OpenBets = () => {
               {betAmount && currentPossibleRewards && userChoice && (
                 <p className={styles.currentPossibleRewards}>
                   Current Possible Rewards:{" "}
-                  <span>{currentPossibleRewards / 10 ** 18} Odds</span>
+                  <span>
+                    {currentPossibleRewards.toString() / 10 ** 18} Odds
+                  </span>
                 </p>
               )}
 
-              <button className={styles.placeBet}>Place Bet</button>
+              <button
+                className={styles.placeBet}
+                disabled={!joinBet}
+                onClick={() => joinBet?.()}
+              >
+                Place Bet
+              </button>
             </div>
           )}
         </div>
@@ -303,7 +386,7 @@ export const OpenBets = () => {
 
           <div className={styles.popUpDescription}>
             <p>Bet Description</p>
-            <textarea />
+            <textarea onChange={(e) => setBetDescription(e.target.value)} />
           </div>
 
           {betType == false && (
@@ -343,7 +426,13 @@ export const OpenBets = () => {
             </div>
           </div>
 
-          <button className={styles.createButton}>Create Bet</button>
+          <button
+            className={styles.createButton}
+            disabled={!createBet}
+            onClick={() => createBet?.()}
+          >
+            Create Bet
+          </button>
         </div>
       )}
     </main>

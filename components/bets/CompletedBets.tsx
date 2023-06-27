@@ -1,7 +1,20 @@
-import { COMPLETED_BETS, OPEN_BETS } from "@/fakeData";
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import { BET_CREATION_FEE, getBetEndDate, truncateAddr } from "@/utils";
+import {
+  BET_CREATION_FEE,
+  ODDS_ADDRESS,
+  getBetEndDate,
+  truncateAddr,
+} from "@/utils";
+import {
+  useAccount,
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+} from "wagmi";
+import { ODDS_ABI } from "@/abi";
+import { useQuery } from "@apollo/client";
+import { GET_COMPLETED_BETS } from "@/queries";
 
 export const CompletedBets = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
@@ -31,10 +44,75 @@ export const CompletedBets = () => {
 
   const [popUp, setPopUp] = useState<boolean>(false);
 
+  const { address } = useAccount();
+
+  ///////// SMART CONTRACT READ FUNCTIONS ///////////
+
+  // GET CURRENT TIMESTAMP
+  const { data: currentTimestamp } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getCurrentTimeStamp",
+  });
+
+  const { data: isWinner } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getIsWinner",
+    args: [selecetdBet && selecetdBet.betID, address],
+  });
+
+  const { data: amountWon } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getUserWinnings",
+    args: [selecetdBet && selecetdBet.betID, address],
+  });
+
+  const { data: requiredNumberOfValidators } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getRequiredNumberOfValidators",
+  });
+
+  ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
+
+  const { config: claimWinningConfig, error: claimErr } =
+    usePrepareContractWrite({
+      address: ODDS_ADDRESS,
+      abi: ODDS_ABI,
+      functionName: "claimSingleBetWinnings",
+      args: [selecetdBet && selecetdBet.betID],
+    });
+  const { write: claimWinning } = useContractWrite(claimWinningConfig);
+
+  // APOLLO QUERY - GET OPEN BETS
+  const {
+    loading,
+    error,
+    data: COMPLETED_BETS,
+  } = useQuery(GET_COMPLETED_BETS, {
+    // @ts-ignore
+    variables: { currentTimestamp: parseInt(currentTimestamp) },
+  });
+
+  // SPECIFIC FUNCTIONS
+  const calculateYesPercentage = (
+    yesParticipants: string,
+    noParticipants: string
+  ) => {
+    let result =
+      (parseInt(yesParticipants) * 100) /
+      (parseInt(noParticipants) + parseInt(yesParticipants));
+
+    if (result) {
+      return result.toFixed(2);
+    } else {
+      return "0";
+    }
+  };
+
   // TEST VARIABLES
-  const currentTimestamp = 1697489088;
-  const isWinner = true;
-  const requiredNumberOfValidators = 5;
 
   return (
     <main className={styles.main}>
@@ -48,7 +126,9 @@ export const CompletedBets = () => {
 
           <div className={styles.bets}>
             {COMPLETED_BETS &&
-              COMPLETED_BETS.map((bet, index) => {
+            COMPLETED_BETS.bets &&
+            COMPLETED_BETS.bets.length > 0 ? (
+              COMPLETED_BETS.bets.map((bet, index) => {
                 return (
                   <div
                     className={
@@ -70,7 +150,7 @@ export const CompletedBets = () => {
 
                       <div className={styles.stat}>
                         <span>Participants</span>
-                        <p>{bet.participants.length}</p>
+                        <p>{bet.participants}</p>
                       </div>
 
                       <button
@@ -85,7 +165,10 @@ export const CompletedBets = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+            ) : (
+              <p>No completed bets</p>
+            )}
           </div>
         </div>
 
@@ -118,13 +201,9 @@ export const CompletedBets = () => {
                   <span>Yes Percentage</span>
 
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.yesParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.yesParticipants,
+                      selecetdBet.noParticipants
                     )}{" "}
                     %
                   </p>
@@ -133,13 +212,9 @@ export const CompletedBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>No Percentage</span>
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.noParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.noParticipants,
+                      selecetdBet.yesParticipants
                     )}{" "}
                     %
                   </p>
@@ -148,7 +223,7 @@ export const CompletedBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Validators</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.validators.length}</p>
+                  <p>{selecetdBet.validators}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -160,7 +235,7 @@ export const CompletedBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Participants</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.participants.length}</p>
+                  <p>{selecetdBet.participants}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -226,48 +301,59 @@ export const CompletedBets = () => {
                 )}
 
                 <div className={styles.selectedBetStat}>
-                  <span>Validator(s)</span>
-                  <div className={styles.validators}>
-                    {/* @ts-ignore */}
-                    {selecetdBet.validators.map((validator, index) => {
-                      return (
-                        <p>
-                          {index + 1}. {truncateAddr(validator)}
-                        </p>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className={styles.selectedBetStat}>
                   <span>Outcome</span>
                   {/* @ts-ignore */}
                   <p>{selecetdBet.outCome == 1 && "Yes"}</p>
                   {/* @ts-ignore */}
                   <p>{selecetdBet.outCome == 2 && "No"}</p>
                 </div>
+
+                {currentTimestamp && (
+                  <div className={styles.selectedBetStat}>
+                    <span>Claim Time Left</span>
+                    {/* @ts-ignore */}
+                    <p>
+                      {getBetEndDate(
+                        selecetdBet.claimWaitTime.toString() -
+                          currentTimestamp.toString()
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* @ts-ignore */}
-              {currentTimestamp > selecetdBet.claimWaitTime &&
-                // @ts-ignore
-                selecetdBet.currentlyChallenged == false &&
-                // @ts-ignore
-                selecetdBet.reportOutcome == 0 && (
-                  <div className={styles.amountWonAndClaimWinnings}>
-                    {/* @ts-ignore */}
-                    {isWinner == true && amountWon && (
-                      <p className={styles.amountWon}>
-                        {/* @ts-ignore */}
-                        Amount Won: <span>{amountWon / 10 ** 18} Odds</span>
-                      </p>
-                    )}
+              {currentTimestamp > selecetdBet.claimWaitTime && (
+                <div className={styles.amountWonAndClaimWinnings}>
+                  {/* @ts-ignore */}
+                  {isWinner == true && amountWon && (
+                    <p className={styles.amountWon}>
+                      {/* @ts-ignore */}
+                      Amount Won:{" "}
+                      <span>{amountWon.toString() / 10 ** 18} Odds</span>
+                    </p>
+                  )}
 
-                    <button className={styles.claimWinnings}>
-                      Claim Winnings
-                    </button>
-                  </div>
-                )}
+                  <button
+                    className={styles.claimWinnings}
+                    disabled={!claimWinning}
+                    onClick={() => claimWinning?.()}
+                  >
+                    Claim Winnings
+                  </button>
+                </div>
+              )}
+
+              <p className="error">
+                {claimErr?.message.includes("#06") &&
+                  "You did not partake in this bet"}
+
+                {claimErr?.message.includes("#12") &&
+                  "You have already claimed your winnings"}
+
+                {claimErr?.message.includes("#08") &&
+                  "You did not win this bet"}
+              </p>
 
               {/* @ts-ignore */}
               {selecetdBet.currentlyChallenged == false &&

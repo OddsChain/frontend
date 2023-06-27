@@ -1,7 +1,15 @@
-import { AWAITING_VALIDATED_BETS } from "@/fakeData";
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import { BET_CREATION_FEE, getBetEndDate, truncateAddr } from "@/utils";
+import {
+  BET_CREATION_FEE,
+  ODDS_ADDRESS,
+  getBetEndDate,
+  truncateAddr,
+} from "@/utils";
+import { useContractRead } from "wagmi";
+import { ODDS_ABI } from "@/abi";
+import { GET_AWAITING_VALIDATION_BETS } from "@/queries";
+import { useQuery } from "@apollo/client";
 
 export const AwaitingValidatingBets = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
@@ -31,7 +39,41 @@ export const AwaitingValidatingBets = () => {
 
   const [popUp, setPopUp] = useState<boolean>(false);
 
-  // TEST VARIABLES
+  ///////// SMART CONTRACT READ FUNCTIONS ///////////
+
+  // GET CURRENT TIMESTAMP
+  const { data: currentTimestamp } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getCurrentTimeStamp",
+  });
+
+  // APOLLO QUERY - GET OPEN BETS
+  const {
+    loading,
+    error,
+    data: AWAITING_VALIDATED_BETS,
+  } = useQuery(GET_AWAITING_VALIDATION_BETS, {
+    // @ts-ignore
+    variables: { currentTimestamp: parseInt(currentTimestamp) },
+  });
+
+  // SPECIFIC FUNCTIONS
+  const calculateYesPercentage = (
+    yesParticipants: string,
+    noParticipants: string
+  ) => {
+    let result =
+      (parseInt(yesParticipants) * 100) /
+      (parseInt(noParticipants) + parseInt(yesParticipants));
+
+    if (result) {
+      return result.toFixed(2);
+    } else {
+      return "0";
+    }
+  };
+
   return (
     <main className={styles.main}>
       <div className={popUp ? styles.openBetsBlur : styles.openBets}>
@@ -44,7 +86,9 @@ export const AwaitingValidatingBets = () => {
 
           <div className={styles.bets}>
             {AWAITING_VALIDATED_BETS &&
-              AWAITING_VALIDATED_BETS.map((bet, index) => {
+            AWAITING_VALIDATED_BETS.bets &&
+            AWAITING_VALIDATED_BETS.bets.length > 0 ? (
+              AWAITING_VALIDATED_BETS.bets.map((bet, index) => {
                 return (
                   <div
                     className={
@@ -66,7 +110,9 @@ export const AwaitingValidatingBets = () => {
 
                       <div className={styles.stat}>
                         <span>Participants</span>
-                        <p>{bet.participants.length}</p>
+                        <p>
+                          {bet.participants ? bet.participants.toString() : "0"}
+                        </p>
                       </div>
 
                       <button
@@ -81,7 +127,10 @@ export const AwaitingValidatingBets = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+            ) : (
+              <p>No Bets Awaiting Validation</p>
+            )}
           </div>
         </div>
 
@@ -114,7 +163,7 @@ export const AwaitingValidatingBets = () => {
                   <span>
                     {/* @ts-ignore */}
                     {selecetdBet.validationCount} / {/* @ts-ignore */}
-                    {selecetdBet.validators.length}
+                    {selecetdBet.validators}
                   </span>
                 </p>
               </div>
@@ -125,13 +174,9 @@ export const AwaitingValidatingBets = () => {
                   <span>Yes Percentage</span>
 
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.yesParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.yesParticipants,
+                      selecetdBet.noParticipants
                     )}{" "}
                     %
                   </p>
@@ -140,13 +185,9 @@ export const AwaitingValidatingBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>No Percentage</span>
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.noParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.noParticipants,
+                      selecetdBet.yesParticipants
                     )}{" "}
                     %
                   </p>
@@ -155,7 +196,7 @@ export const AwaitingValidatingBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Validators</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.validators.length}</p>
+                  <p>{selecetdBet.validators}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -167,7 +208,7 @@ export const AwaitingValidatingBets = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Participants</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.participants.length}</p>
+                  <p>{selecetdBet.participants}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -193,20 +234,6 @@ export const AwaitingValidatingBets = () => {
                   <span>Creator</span>
                   {/* @ts-ignore */}
                   <p>{truncateAddr(selecetdBet.creator)}</p>
-                </div>
-
-                <div className={styles.selectedBetStat}>
-                  <span>Validator(s)</span>
-                  <div className={styles.validators}>
-                    {/* @ts-ignore */}
-                    {selecetdBet.validators.map((validator, index) => {
-                      return (
-                        <p>
-                          {index + 1}. {truncateAddr(validator)}
-                        </p>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
             </div>

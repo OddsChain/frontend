@@ -1,11 +1,34 @@
 import React from "react";
 import styles from "../styles/components/Navbar.module.css";
-import { truncateAddr } from "@/utils";
+import { MetaMaskConnector } from "wagmi/connectors/metaMask";
+import { useAccount, useConnect, useContractRead } from "wagmi";
+import { ODDS_ADDRESS, truncateAddr } from "@/utils";
+import { ODDS_ABI } from "@/abi";
 
 export const Navbar = () => {
-  const isConnected = true;
-  const address = "0x52047DE4458AfaaFF7C6B954C63033A21EfCD2E6";
-  const userBalance = "10230000000000000000";
+  const connector = new MetaMaskConnector();
+  const { connect } = useConnect();
+  const { address, isConnected } = useAccount({
+    onConnect({ address }) {
+      // @ts-ignore
+      localStorage.setItem("connected", address);
+    },
+    // @ts-ignore
+    onDisconnect({ address }) {
+      // @ts-ignore
+      localStorage.setItem("connected", ADDRESS_ZERO);
+    },
+  });
+
+  // SMART CONTARCT READ FUNCTIONS
+
+  // GTE USER DETAILS
+  const { data: userDetails, isLoading } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getUserDetails",
+    args: [address],
+  });
 
   return (
     <div className={styles.navBar}>
@@ -26,13 +49,20 @@ export const Navbar = () => {
           <a href="/" className={styles.docs}>
             Docs
           </a>
-          <button className={styles.connect}>Connect</button>
+          <button
+            className={styles.connect}
+            onClick={() => connect({ connector })}
+          >
+            Connect
+          </button>
         </div>
       ) : (
         <div className={styles.endButtons}>
           <p className={styles.addr}>{address && truncateAddr(address)}</p>
           <p className={styles.balance}>
-            {userBalance && parseInt(userBalance) / 10 ** 18}
+            {/* @ts-ignore */}
+            {userDetails &&
+              (parseInt(userDetails.balance.toString()) / 10 ** 18).toFixed(2)}
           </p>
         </div>
       )}

@@ -1,14 +1,72 @@
 import { AWAITING_VALIDATED_BETS } from "@/fakeData";
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import { truncateAddr } from "@/utils";
+import { ODDS_ADDRESS, truncateAddr } from "@/utils";
+import {
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+} from "wagmi";
+import { ODDS_ABI } from "@/abi";
+import { GET_AWAITING_VALIDATION_BETS } from "@/queries";
+import { useQuery } from "@apollo/client";
 
 export const ValidateBet = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
   const [selecetdBet, setSelectedBet] = useState();
+  const [userChoice, setUserChoice] = useState("");
 
   // private validator management
   const [privateValidators, setPrivateValidators] = useState([]);
+
+  ///////// SMART CONTRACT READ FUNCTIONS ///////////
+
+  // GET CURRENT TIMESTAMP
+  const { data: currentTimestamp } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getCurrentTimeStamp",
+  });
+
+  ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
+
+  const { config: validateBetConfig, error: validateBetErr } =
+    usePrepareContractWrite({
+      address: ODDS_ADDRESS,
+      abi: ODDS_ABI,
+      functionName: "validateBet",
+      args: [selecetdBet && selecetdBet.betID, userChoice],
+    });
+  const { write: validateBet } = useContractWrite(validateBetConfig);
+
+  if (validateBetErr) {
+    console.log("ERRRR", validateBetErr);
+  }
+
+  // APOLLO QUERY - GET OPEN BETS
+  const { data: AWAITING_VALIDATED_BETS } = useQuery(
+    GET_AWAITING_VALIDATION_BETS,
+    {
+      // @ts-ignore
+      variables: { currentTimestamp: parseInt(currentTimestamp) },
+    }
+  );
+
+  // SPECIFIC FUNCTIONS
+  const calculateYesPercentage = (
+    yesParticipants: string,
+    noParticipants: string
+  ) => {
+    let result =
+      (parseInt(yesParticipants) * 100) /
+      (parseInt(noParticipants) + parseInt(yesParticipants));
+
+    if (result) {
+      return result.toFixed(2);
+    } else {
+      return "0";
+    }
+  };
 
   return (
     <main className={styles.main}>
@@ -21,7 +79,9 @@ export const ValidateBet = () => {
 
           <div className={styles.bets}>
             {AWAITING_VALIDATED_BETS &&
-              AWAITING_VALIDATED_BETS.map((bet, index) => {
+            AWAITING_VALIDATED_BETS.bets &&
+            AWAITING_VALIDATED_BETS.bets.length > 0 ? (
+              AWAITING_VALIDATED_BETS.bets.map((bet, index) => {
                 return (
                   <div
                     className={
@@ -43,7 +103,7 @@ export const ValidateBet = () => {
 
                       <div className={styles.stat}>
                         <span>Participants</span>
-                        <p>{bet.participants.length}</p>
+                        <p>{bet.participants}</p>
                       </div>
 
                       <button
@@ -58,7 +118,10 @@ export const ValidateBet = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+            ) : (
+              <p>No Bets To Be Validated</p>
+            )}
           </div>
         </div>
 
@@ -91,7 +154,7 @@ export const ValidateBet = () => {
                   <span>
                     {/* @ts-ignore */}
                     {selecetdBet.validationCount} / {/* @ts-ignore */}
-                    {selecetdBet.validators.length}
+                    {selecetdBet.validators}
                   </span>
                 </p>
               </div>
@@ -102,13 +165,9 @@ export const ValidateBet = () => {
                   <span>Yes Percentage</span>
 
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.yesParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.yesParticipants,
+                      selecetdBet.noParticipants
                     )}{" "}
                     %
                   </p>
@@ -117,13 +176,9 @@ export const ValidateBet = () => {
                 <div className={styles.selectedBetStat}>
                   <span>No Percentage</span>
                   <p>
-                    {Math.round(
-                      // @ts-ignore
-                      (selecetdBet.noParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                    {calculateYesPercentage(
+                      selecetdBet.noParticipants,
+                      selecetdBet.yesParticipants
                     )}{" "}
                     %
                   </p>
@@ -144,7 +199,7 @@ export const ValidateBet = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Participants</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.participants.length}</p>
+                  <p>{selecetdBet.participants}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -171,23 +226,40 @@ export const ValidateBet = () => {
                   {/* @ts-ignore */}
                   <p>{truncateAddr(selecetdBet.creator)}</p>
                 </div>
-
-                <div className={styles.selectedBetStat}>
-                  <span>Validator(s)</span>
-                  <div className={styles.validators}>
-                    {/* @ts-ignore */}
-                    {selecetdBet.validators.map((validator, index) => {
-                      return (
-                        <p>
-                          {index + 1}. {truncateAddr(validator)}
-                        </p>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <button className={styles.validateButton}>Validate</button>
               </div>
+
+              <div className={styles.joinBet}>
+                <button
+                  className={styles.yes}
+                  onClick={() => setUserChoice("1")}
+                >
+                  Yes
+                </button>
+                <p>Or</p>
+                <button
+                  className={styles.no}
+                  onClick={() => setUserChoice("2")}
+                >
+                  No
+                </button>
+
+                <p>
+                  Selected Choice: {userChoice == "1" && "Yes"}{" "}
+                  {userChoice == "2" && "No"}
+                </p>
+              </div>
+
+              <button
+                className={styles.validateButton}
+                disabled={!validateBet}
+                onClick={() => validateBet?.()}
+              >
+                Validate
+              </button>
+              <p className="error">
+                {validateBetErr?.message.includes("#17") &&
+                  "You are not a valid validator for this bet"}
+              </p>
             </div>
           )}
         </div>

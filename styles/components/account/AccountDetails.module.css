@@ -29,9 +29,11 @@
 
 .userStats {
   display: flex;
+  flex-wrap: nowrap;
   margin-bottom: 40px;
   border-bottom: 1px solid #0f332db0;
   padding-bottom: 30px;
+  width: 100%;
 }
 
 .accountStat {
@@ -90,4 +92,9 @@
 
 .withdrawAccount button {
   background-color: #4ada85;
+}
+
+.odds {
+  font-size: 35px;
+  color: #0f332d;
 }

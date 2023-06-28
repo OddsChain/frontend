@@ -63,6 +63,7 @@ export const Navbar = () => {
           <p className={styles.balance}>
             {/* @ts-ignore */}
             {userDetails &&
+              // @ts-ignore
               (parseInt(userDetails.balance.toString()) / 10 ** 18).toFixed(2)}
           </p>
         </div>

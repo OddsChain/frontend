@@ -71,3 +71,13 @@ Sections in the smart contract that implements this
 
 - `_execute` and `getVRFForValidatorAssignment` functions -
   To receive the selected validator and facilitate the assignment of validators, we established a connection to the OddsVRFHelper deployed on the Fantom testnet. This allowed us to make the necessary requests and handle the process of assigning validators within the system.
+
+# LINKS
+
+Live website -
+Youtube Video -
+Project Github -
+Smart contract repo -
+Ftontend Repo -
+Subgraph Repo -
+Documentation -

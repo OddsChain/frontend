@@ -383,12 +383,6 @@ export const ODDS_ABI = [
         name: "betID",
         type: "uint256",
       },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "voteTime",
-        type: "uint256",
-      },
     ],
     name: "Validator_Reported",
     type: "event",
@@ -446,19 +440,6 @@ export const ODDS_ABI = [
   {
     inputs: [],
     name: "VALIDATOR_STAKE_AMOUNT",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "VALIDATOR_VOTE_TIME",
     outputs: [
       {
         internalType: "uint256",
@@ -731,11 +712,6 @@ export const ODDS_ABI = [
             internalType: "bool",
             name: "currentlyChallenged",
             type: "bool",
-          },
-          {
-            internalType: "uint256",
-            name: "voteTime",
-            type: "uint256",
           },
           {
             internalType: "uint256",
@@ -1348,6 +1324,25 @@ export const ODDS_ABI = [
         internalType: "uint256",
         name: "userWinnings",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_betID",
+        type: "uint256",
+      },
+    ],
+    name: "getValidators",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
       },
     ],
     stateMutability: "view",

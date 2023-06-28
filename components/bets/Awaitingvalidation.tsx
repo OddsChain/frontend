@@ -1,11 +1,6 @@
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import {
-  BET_CREATION_FEE,
-  ODDS_ADDRESS,
-  getBetEndDate,
-  truncateAddr,
-} from "@/utils";
+import { ODDS_ADDRESS, getBetEndDate, truncateAddr } from "@/utils";
 import { useContractRead } from "wagmi";
 import { ODDS_ABI } from "@/abi";
 import { GET_AWAITING_VALIDATION_BETS } from "@/queries";
@@ -14,30 +9,6 @@ import { useQuery } from "@apollo/client";
 export const AwaitingValidatingBets = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
   const [selecetdBet, setSelectedBet] = useState();
-  const [betAmount, setBetAmount] = useState<string>();
-  const [betEndTime, setBetEndTime] = useState<string>();
-
-  // private validator management
-  const [privateValidators, setPrivateValidators] = useState([]);
-  const [validatorInput, setValidatorInput] = useState("");
-  const [isCollectionComplete, setCollectionComplete] = useState(false);
-
-  const handleAddValidator = () => {
-    if (privateValidators.length < 3) {
-      // @ts-ignore
-      setPrivateValidators((prevValidators) => [
-        // @ts-ignore
-        ...prevValidators,
-        validatorInput,
-      ]);
-
-      if (privateValidators.length + 1 == 3) {
-        setCollectionComplete(true);
-      }
-    }
-  };
-
-  const [popUp, setPopUp] = useState<boolean>(false);
 
   ///////// SMART CONTRACT READ FUNCTIONS ///////////
 
@@ -48,15 +19,23 @@ export const AwaitingValidatingBets = () => {
     functionName: "getCurrentTimeStamp",
   });
 
-  // APOLLO QUERY - GET OPEN BETS
-  const {
-    loading,
-    error,
-    data: AWAITING_VALIDATED_BETS,
-  } = useQuery(GET_AWAITING_VALIDATION_BETS, {
+  // GET VALIDATOR ADDRESSES
+  const { data: privateValidatorAddress } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getValidators",
     // @ts-ignore
-    variables: { currentTimestamp: parseInt(currentTimestamp) },
+    args: [selecetdBet && selecetdBet.betID],
   });
+
+  // APOLLO QUERY - GET AWAITING VALIDATION BETS
+  const { data: AWAITING_VALIDATED_BETS } = useQuery(
+    GET_AWAITING_VALIDATION_BETS,
+    {
+      // @ts-ignore
+      variables: { currentTimestamp: parseInt(currentTimestamp) },
+    }
+  );
 
   // SPECIFIC FUNCTIONS
   const calculateYesPercentage = (
@@ -76,18 +55,18 @@ export const AwaitingValidatingBets = () => {
 
   return (
     <main className={styles.main}>
-      <div className={popUp ? styles.openBetsBlur : styles.openBets}>
+      <div className={styles.openBets}>
         {/* LEFT */}
         <div className={styles.left}>
           <div className={styles.title}>
-            <h3>Awaiting Validation Bets</h3>
-            <img src="/icons/plus.jpg" onClick={() => setPopUp(true)} />
+            <h3>Bets Awaiting Validation</h3>
           </div>
 
           <div className={styles.bets}>
             {AWAITING_VALIDATED_BETS &&
             AWAITING_VALIDATED_BETS.bets &&
             AWAITING_VALIDATED_BETS.bets.length > 0 ? (
+              // @ts-ignore
               AWAITING_VALIDATED_BETS.bets.map((bet, index) => {
                 return (
                   <div
@@ -129,7 +108,7 @@ export const AwaitingValidatingBets = () => {
                 );
               })
             ) : (
-              <p>No Bets Awaiting Validation</p>
+              <p className="emptyList">No Bets Awaiting Validation</p>
             )}
           </div>
         </div>
@@ -175,7 +154,9 @@ export const AwaitingValidatingBets = () => {
 
                   <p>
                     {calculateYesPercentage(
+                      // @ts-ignore
                       selecetdBet.yesParticipants,
+                      // @ts-ignore
                       selecetdBet.noParticipants
                     )}{" "}
                     %
@@ -186,7 +167,9 @@ export const AwaitingValidatingBets = () => {
                   <span>No Percentage</span>
                   <p>
                     {calculateYesPercentage(
+                      // @ts-ignore
                       selecetdBet.noParticipants,
+                      // @ts-ignore
                       selecetdBet.yesParticipants
                     )}{" "}
                     %
@@ -198,6 +181,31 @@ export const AwaitingValidatingBets = () => {
                   {/* @ts-ignore */}
                   <p>{selecetdBet.validators}</p>
                 </div>
+
+                {/* @ts-ignore */}
+                {selecetdBet.betType ? (
+                  <div className={styles.selectedBetStat}>
+                    <span>Validator Address</span>
+                    {/* @ts-ignore */}
+                    <p>{truncateAddr(selecetdBet.validator)}</p>
+                  </div>
+                ) : (
+                  <div className={styles.selectedBetStat}>
+                    <span>Validator Address's</span>
+                    <div className={styles.validatorList}>
+                      {/* @ts-ignore */}
+                      {privateValidatorAddress &&
+                        // @ts-ignore
+                        privateValidatorAddress.map((validator, index) => {
+                          return (
+                            <p>
+                              {index + 1}. {truncateAddr(validator)}
+                            </p>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.selectedBetStat}>
                   <span>Public Validation</span>
@@ -236,94 +244,20 @@ export const AwaitingValidatingBets = () => {
                   <p>{truncateAddr(selecetdBet.creator)}</p>
                 </div>
               </div>
+
+              <p
+                style={{
+                  marginTop: "30px",
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                }}
+              >
+                Bet is currently awaiting validation from validators
+              </p>
             </div>
           )}
         </div>
       </div>
-
-      {popUp && (
-        <div className={styles.createPopUp}>
-          <div className={styles.popUpTitle}>
-            <h3>Create Bet</h3>
-            <img src="/icons/cancel.png" onClick={() => setPopUp(false)} />
-          </div>
-
-          <div className={styles.popUpBetType}>
-            <p>Bet Type</p>
-
-            <div className={styles.options}>
-              <button
-                className={styles.public}
-                // @ts-ignore
-                onClick={() => setBetType(true)}
-              >
-                Public
-              </button>
-              <button
-                className={styles.private}
-                // @ts-ignore
-                onClick={() => setBetType(false)}
-              >
-                Private
-              </button>
-              <p>
-                {/* @ts-ignore */}
-                Selected: <span>{betType ? "Public" : "Private"}</span>
-              </p>
-            </div>
-          </div>
-          {/* @ts-ignore */}
-          {betType == true && (
-            <p className={styles.betCreationFee}>
-              Bet Creation Fee: <span>{BET_CREATION_FEE / 10 ** 18} </span> GLMR
-            </p>
-          )}
-
-          <div className={styles.popUpDescription}>
-            <p>Bet Description</p>
-            <textarea />
-          </div>
-          {/* @ts-ignore */}
-          {betType == false && (
-            <div className={styles.popUpValidators}>
-              <p>Validators</p>
-
-              <div className={styles.popUpValidatorsInput}>
-                <input
-                  onChange={(e) => setValidatorInput(e.target.value)}
-                  disabled={isCollectionComplete}
-                />
-                <button onClick={handleAddValidator}>Add</button>
-                <button onClick={() => setPrivateValidators([])}>Clear</button>
-              </div>
-
-              <div className={styles.addedValidators}>
-                {privateValidators.map((validator, index) => {
-                  return (
-                    <p>
-                      {index + 1}. {validator}
-                    </p>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className={styles.betEntranceTime}>
-            <p>Bet Entrance End Time</p>
-
-            <div className={styles.inputAndDisplay}>
-              <input
-                onChange={(e) => setBetEndTime(e.target.value)}
-                type="number"
-              />
-              {betEndTime && <p>{getBetEndDate(parseInt(betEndTime))}</p>}
-            </div>
-          </div>
-
-          <button className={styles.createButton}>Create Bet</button>
-        </div>
-      )}
     </main>
   );
 };

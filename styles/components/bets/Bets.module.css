@@ -141,7 +141,7 @@
   border-radius: 7px;
   border: 1px solid #0f332dab;
   padding: 30px;
-  height: 520px;
+  height: 580px;
 }
 
 .betDetails {
@@ -624,4 +624,33 @@
 
 .agree {
   background-color: #4ada85;
+}
+
+.takeAction {
+  background-color: #0f332d;
+  padding: 12px 0px;
+  border-radius: 8px;
+  font-size: 18px;
+  color: #fff;
+  margin-top: 30px;
+}
+.takeAction:hover {
+  scale: 1.05;
+}
+
+.validatorList {
+  display: flex;
+}
+
+.validatorList p {
+  margin-right: 15px;
+}
+
+.vote {
+  background-color: #4ada85;
+  color: #fff;
+  font-size: 20px;
+  padding: 10px 0px;
+  border-radius: 10px;
+  margin-top: 25px;
 }

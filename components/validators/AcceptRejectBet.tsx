@@ -1,11 +1,38 @@
-import { BETS_TO_BE_ACCEPTED } from "@/fakeData";
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import { truncateAddr } from "@/utils";
+import { ODDS_ADDRESS, truncateAddr } from "@/utils";
+import { GET_AWAITING_ACCEPT_BETS } from "@/queries";
+import { useQuery } from "@apollo/client";
+import { ODDS_ABI } from "@/abi";
+import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
 
 export const AcceptRejectBet = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
   const [selecetdBet, setSelectedBet] = useState();
+  const [validatorChoice, setValidatorChoice] = useState<boolean>();
+
+  const { address } = useAccount();
+
+  ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
+
+  // ACCEPT OR DENY BET
+  const { config: acceptOrDenyBetConfig, error: acceptOrDenyErr } =
+    usePrepareContractWrite({
+      address: ODDS_ADDRESS,
+      abi: ODDS_ABI,
+      functionName: "acceptOrDenyBet",
+      // @ts-ignore
+      args: [selecetdBet && selecetdBet.betID, validatorChoice],
+    });
+  const { write: acceptOrDenyBet } = useContractWrite(acceptOrDenyBetConfig);
+
+  // APOLLO QUERY - GET OPEN BETS
+  const { data: AWAITING_ACCEPTANCE_BETS } = useQuery(
+    GET_AWAITING_ACCEPT_BETS,
+    {
+      variables: { address },
+    }
+  );
 
   return (
     <main className={styles.main}>
@@ -17,8 +44,11 @@ export const AcceptRejectBet = () => {
           </div>
 
           <div className={styles.bets}>
-            {BETS_TO_BE_ACCEPTED &&
-              BETS_TO_BE_ACCEPTED.map((bet, index) => {
+            {AWAITING_ACCEPTANCE_BETS &&
+            AWAITING_ACCEPTANCE_BETS.bets &&
+            AWAITING_ACCEPTANCE_BETS.bets.length > 0 ? (
+              // @ts-ignore
+              AWAITING_ACCEPTANCE_BETS.bets.map((bet, index) => {
                 return (
                   <div
                     className={
@@ -55,7 +85,10 @@ export const AcceptRejectBet = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+            ) : (
+              <p className="emptyList">No bets to accept or deny</p>
+            )}
           </div>
         </div>
 
@@ -91,40 +124,59 @@ export const AcceptRejectBet = () => {
                 </div>
 
                 <div className={styles.selectedBetStat}>
-                  <span>Creator</span>
+                  <span>Validator Address</span>
                   {/* @ts-ignore */}
-                  <p>{truncateAddr(selecetdBet.creator)}</p>
+                  <p>{truncateAddr(selecetdBet.validator)}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
-                  <span>Validator(s)</span>
-                  <div className={styles.validators}>
-                    {/* @ts-ignore */}
-                    {selecetdBet.validators.map((validator, index) => {
-                      return (
-                        <p>
-                          {index + 1}. {truncateAddr(validator)}
-                        </p>
-                      );
-                    })}
-                  </div>
+                  <span>Creator</span>
+                  {/* @ts-ignore */}
+                  <p>{truncateAddr(selecetdBet.creator)}</p>
                 </div>
               </div>
 
               <div className={styles.acceptOrDenyDesc}>
                 <h3>Note</h3>
                 <p>
-                  You've been selected as the validatoro for this bet. Review
-                  and assertain if this bet is publicly veriable by your fellow
+                  You've been assigned as the validator for this bet. Review and
+                  assertain if this bet is publicly verifiable by your fellow
                   validators and accept or deny accordingly.
                 </p>
               </div>
 
               <div className={styles.acceptOrDeny}>
-                <button className={styles.accept}>Accept</button>
+                <button
+                  className={styles.accept}
+                  onClick={() => setValidatorChoice(true)}
+                >
+                  Accept
+                </button>
                 <p>Or</p>
-                <button className={styles.deny}>Deny</button>
+                <button
+                  className={styles.deny}
+                  onClick={() => setValidatorChoice(false)}
+                >
+                  Deny
+                </button>
+
+                <p>Selected Choice: {validatorChoice ? "Accept" : "Deny"}</p>
               </div>
+
+              <button
+                disabled={!acceptOrDenyBet}
+                onClick={() => acceptOrDenyBet?.()}
+                className={styles.takeAction}
+              >
+                Take Action
+              </button>
+
+              <p className="error">
+                {acceptOrDenyErr &&
+                  acceptOrDenyErr.message &&
+                  acceptOrDenyErr.message.includes("#17") &&
+                  "Not Validator For This Bet"}
+              </p>
             </div>
           )}
         </div>

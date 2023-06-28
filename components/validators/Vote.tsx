@@ -1,16 +1,78 @@
-import { COMPLETED_BETS } from "@/fakeData";
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import { getBetEndDate, truncateAddr } from "@/utils";
+import { ODDS_ADDRESS, getBetEndDate, truncateAddr } from "@/utils";
+import { GET_REPORTED_BETS } from "@/queries";
+import { useQuery } from "@apollo/client";
+import {
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+} from "wagmi";
+import { ODDS_ABI } from "@/abi";
 
 export const Vote = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
   const [selecetdBet, setSelectedBet] = useState();
+  const [voterChoice, setVoterChoice] = useState<boolean>();
 
-  // TEST VARIABLES
-  const currentTimestamp = 1697489088;
-  const requiredNumberOfValidators = 5;
-  const hasVoted = false;
+  ///////// SMART CONTRACT READ FUNCTIONS ///////////
+
+  // GET CURRENT TIMESTAMP
+  const { data: currentTimestamp } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getCurrentTimeStamp",
+  });
+
+  // GET REQUIRED NUMBER OF VALIDATORS
+  const { data: requiredNumberOfValidators } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getRequiredNumberOfValidators",
+  });
+
+  // GET HAS VOTED
+  const { data: hasVoted } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "hasVoted",
+    // @ts-ignore
+    args: [selecetdBet && selecetdBet.betID],
+  });
+
+  ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
+
+  // VOTE
+  const { config: voteConfig, error: voteErr } = usePrepareContractWrite({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "voteValidator",
+    // @ts-ignore
+    args: [selecetdBet && selecetdBet.betID, voterChoice],
+  });
+  const { write: voteValidator } = useContractWrite(voteConfig);
+
+  // APOLLO QUERY - GET OPEN BETS
+  const { data: REPORTED_BETS } = useQuery(GET_REPORTED_BETS, {
+    // @ts-ignore
+    variables: { currentTimestamp: parseInt(currentTimestamp) },
+  });
+
+  // SPECIFIC FUNCTIONS
+  const calculateYesPercentage = (
+    yesParticipants: string,
+    noParticipants: string
+  ) => {
+    let result =
+      (parseInt(yesParticipants) * 100) /
+      (parseInt(noParticipants) + parseInt(yesParticipants));
+
+    if (result) {
+      return result.toFixed(2);
+    } else {
+      return "0";
+    }
+  };
 
   return (
     <main className={styles.main}>
@@ -22,8 +84,11 @@ export const Vote = () => {
           </div>
 
           <div className={styles.bets}>
-            {COMPLETED_BETS &&
-              COMPLETED_BETS.map((bet, index) => {
+            {REPORTED_BETS &&
+            REPORTED_BETS.bets &&
+            REPORTED_BETS.bets.length > 0 ? (
+              // @ts-ignore
+              REPORTED_BETS.bets.map((bet, index) => {
                 return (
                   <div
                     className={
@@ -60,7 +125,10 @@ export const Vote = () => {
                     </div>
                   </div>
                 );
-              })}
+              })
+            ) : (
+              <p>No bets to vote on</p>
+            )}
           </div>
         </div>
 
@@ -93,37 +161,31 @@ export const Vote = () => {
                   <span>Yes Percentage</span>
 
                   <p>
-                    {Math.round(
+                    {calculateYesPercentage(
                       // @ts-ignore
-                      (selecetdBet.yesParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                      selecetdBet.yesParticipants,
+                      // @ts-ignore
+                      selecetdBet.noParticipants
                     )}{" "}
-                    %
                   </p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
                   <span>No Percentage</span>
                   <p>
-                    {Math.round(
+                    {calculateYesPercentage(
                       // @ts-ignore
-                      (selecetdBet.noParticipants * 100) /
-                        // @ts-ignore
-                        (selecetdBet.yesParticipants +
-                          // @ts-ignore
-                          selecetdBet.noParticipants)
+                      selecetdBet.noParticipants,
+                      // @ts-ignore
+                      selecetdBet.yesParticipants
                     )}{" "}
-                    %
                   </p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
                   <span>Validators</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.validators.length}</p>
+                  <p>{selecetdBet.validators}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -163,56 +225,49 @@ export const Vote = () => {
                   <p>{truncateAddr(selecetdBet.creator)}</p>
                 </div>
 
-                {/* @ts-ignore */}
-                {selecetdBet.currentlyChallenged == true && (
-                  <div className={styles.selectedBetStat}>
-                    <span>Vote Quorum</span>
-                    {/* @ts-ignore */}
-                    {selecetdBet.outCome == 1 && (
-                      <p>
-                        {/* @ts-ignore */}
-                        {(selecetdBet.support * 100) /
-                          requiredNumberOfValidators}
-                        %
-                      </p>
-                    )}
-
-                    {/* @ts-ignore */}
-                    {selecetdBet.outCome == 2 && (
-                      <p>
-                        {/* @ts-ignore */}
-                        {(selecetdBet.oppose * 100) /
-                          requiredNumberOfValidators}
-                        %
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* @ts-ignore */}
-                {selecetdBet.currentlyChallenged && (
-                  <div className={styles.selectedBetStat}>
-                    <span>Voting Time</span>
-                    <p>
-                      {/* @ts-ignore */}
-                      {getBetEndDate(selecetdBet.voteTime - currentTimestamp)}
-                    </p>
-                  </div>
-                )}
-
                 <div className={styles.selectedBetStat}>
-                  <span>Validator(s)</span>
-                  <div className={styles.validators}>
-                    {/* @ts-ignore */}
-                    {selecetdBet.validators.map((validator, index) => {
-                      return (
-                        <p>
-                          {index + 1}. {truncateAddr(validator)}
-                        </p>
-                      );
-                    })}
-                  </div>
+                  <span>Validator</span>
+                  {/* @ts-ignore */}
+                  <p>{truncateAddr(selecetdBet.validator)}</p>
                 </div>
+
+                <>
+                  {/* @ts-ignore */}
+                  {selecetdBet.currentlyChallenged == true &&
+                    requiredNumberOfValidators && (
+                      <div className={styles.selectedBetStat}>
+                        <span>Vote Support</span>
+                        {/* @ts-ignore */}
+                        {
+                          <p>
+                            {/* @ts-ignore */}
+                            {(selecetdBet.support * 100) /
+                              // @ts-ignore
+                              requiredNumberOfValidators.toString()}
+                            %
+                          </p>
+                        }
+                      </div>
+                    )}
+
+                  {/* @ts-ignore */}
+                  {selecetdBet.currentlyChallenged == true &&
+                    requiredNumberOfValidators && (
+                      <div className={styles.selectedBetStat}>
+                        <span>Vote Against</span>
+                        {/* @ts-ignore */}
+                        {
+                          <p>
+                            {/* @ts-ignore */}
+                            {(selecetdBet.oppose * 100) /
+                              // @ts-ignore
+                              requiredNumberOfValidators.toString()}
+                            %
+                          </p>
+                        }
+                      </div>
+                    )}
+                </>
 
                 <div className={styles.selectedBetStat}>
                   <span>Outcome</span>
@@ -224,7 +279,7 @@ export const Vote = () => {
               </div>
 
               {/* @ts-ignore */}
-              {selecetdBet.currentlyChallenged == true && hasVoted == true && (
+              {hasVoted == true && (
                 <div className={styles.challenged}>
                   <p className={styles.voted}>
                     Thank You For Voting On This Report!.
@@ -232,14 +287,35 @@ export const Vote = () => {
                 </div>
               )}
               {/* @ts-ignore */}
-              {selecetdBet.currentlyChallenged == true && hasVoted == false && (
+              {hasVoted == false && (
                 // @ts-ignore
-                <div className={styles.voteDecision}>
-                  <p>Vote Decision: </p>
-                  <button className={styles.disagree}>Disagree</button>
-                  <p>Or</p>
-                  <button className={styles.agree}>Agree</button>
-                </div>
+                <>
+                  <div className={styles.voteDecision}>
+                    <p>Vote Decision: </p>
+                    <button
+                      className={styles.disagree}
+                      onClick={() => setVoterChoice(false)}
+                    >
+                      Disagree
+                    </button>
+                    <p>Or</p>
+                    <button
+                      className={styles.agree}
+                      onClick={() => setVoterChoice(true)}
+                    >
+                      Agree
+                    </button>
+                    <p>Selected Option: {voterChoice ? "Agree" : "Disagree"}</p>
+                  </div>
+
+                  <button
+                    className={styles.vote}
+                    disabled={!voteValidator}
+                    onClick={() => voteValidator?.()}
+                  >
+                    Place Vote
+                  </button>
+                </>
               )}
             </div>
           )}

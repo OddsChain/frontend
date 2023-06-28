@@ -1,5 +1,4 @@
 import {
-  erc20ABI,
   useAccount,
   useContractRead,
   useContractWrite,
@@ -11,8 +10,8 @@ import { ODDS_ABI, ODDS_TOKEN_ABI } from "@/abi";
 import { useState } from "react";
 
 export const AccountDetails = () => {
-  const [fundAmount, setFundAmount] = useState("");
-  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [fundAmount, setFundAmount] = useState<string>("");
+  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
 
   const { address: userAddress } = useAccount();
 
@@ -35,6 +34,7 @@ export const AccountDetails = () => {
     address: ODDS_ADDRESS,
     abi: ODDS_ABI,
     functionName: "fundAccount",
+    // @ts-ignore
     args: [fundAmount * 10 ** 18],
   });
   const { write: fundAccount } = useContractWrite(fundAccountConfig);
@@ -44,6 +44,7 @@ export const AccountDetails = () => {
     address: ODDS_ADDRESS,
     abi: ODDS_ABI,
     functionName: "withdrawFromAccount",
+    // @ts-ignore
     args: [withdrawAmount * 10 ** 18],
   });
   const { write: withdrawFromAccount } = useContractWrite(
@@ -68,53 +69,65 @@ export const AccountDetails = () => {
         <p>{userAddress}</p>
       </div>
 
-      {userDetails && (
-        <div className={styles.userStats}>
-          <div className={styles.accountStat}>
-            <span>Total Bets Won</span>
-            <p>
-              {userDetails.totalWinnings
-                ? userDetails.totalWinnings.toString()
-                : "0"}
-            </p>
-          </div>
-
-          <div className={styles.accountStat}>
-            <span>Balance</span>
-            {/* @ts-ignore */}
-            <p>
-              {userDetails.balance
-                ? (userDetails.balance.toString() / 10 ** 18).toFixed(2)
-                : "0"}{" "}
-              <span className={styles.odds}>ODDS</span>
-            </p>
-          </div>
-
-          <div className={styles.accountStat}>
-            <span>Total Bets Partcipated</span>
-            <p>
-              {userDetails.totalBetsParticipated
-                ? userDetails.totalBetsParticipated.toString()
-                : "0"}
-            </p>
-          </div>
-
-          <div className={styles.accountStat}>
-            <span>Win Ratio</span>
-            {userDetails.totalWinnings && userDetails.totalBetsParticipated ? (
+      <>
+        {userDetails && (
+          <div className={styles.userStats}>
+            <div className={styles.accountStat}>
+              <span>Total Bets Won</span>
               <p>
                 {/* @ts-ignore */}
-                {(userDetails.totalWinnings.toString() /
-                  userDetails.totalBetsParticipated.toString()) *
-                  100}{" "}
-                %
+                {userDetails.totalWinnings
+                  ? // @ts-ignore
+                    userDetails.totalWinnings.toString()
+                  : "0"}
               </p>
-            ) : (
-              <p>0 %</p>
-            )}
+            </div>
+
+            <div className={styles.accountStat}>
+              <span>Balance</span>
+
+              <p>
+                {/* @ts-ignore */}
+                {userDetails.balance
+                  ? // @ts-ignore
+                    (userDetails.balance.toString() / 10 ** 18).toFixed(2)
+                  : "0"}{" "}
+                <span className={styles.odds}>ODDS</span>
+              </p>
+            </div>
+
+            <div className={styles.accountStat}>
+              <span>Total Bets Joined</span>
+              <p>
+                {/* @ts-ignore */}
+                {userDetails.totalBetsParticipated
+                  ? // @ts-ignore
+                    userDetails.totalBetsParticipated.toString()
+                  : "0"}
+              </p>
+            </div>
+
+            <div className={styles.accountStat}>
+              <span>Win Ratio</span>
+              {/* @ts-ignore */}
+              {userDetails.totalWinnings &&
+              // @ts-ignore
+              userDetails.totalBetsParticipated ? (
+                <p>
+                  {/* @ts-ignore */}
+                  {(userDetails.totalWinnings.toString() /
+                    // @ts-ignore
+                    userDetails.totalBetsParticipated.toString()) *
+                    100}{" "}
+                  %
+                </p>
+              ) : (
+                <p>0 %</p>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </>
 
       <div className={styles.accountFunding}>
         <div className={styles.fundAccount}>

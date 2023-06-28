@@ -26,6 +26,7 @@ export const GET_OPEN_BETS = gql`
       noPool
       creator
       outCome
+      validator
     }
   }
 `;
@@ -56,6 +57,7 @@ export const GET_AWAITING_VALIDATION_BETS = gql`
       creator
       outCome
       validationCount
+      validator
     }
   }
 `;
@@ -80,6 +82,106 @@ export const GET_COMPLETED_BETS = gql`
       creator
       outCome
       claimWaitTime
+      reportOutcome
+    }
+  }
+`;
+
+export const GET_AWAITING_ACCEPTANCE_BETS = gql`
+  query GetAwaitingAcceptance {
+    bets(
+      where: { and: [{ accepted: false }] }
+      orderBy: endTime
+      orderDirection: desc
+    ) {
+      betID
+      betDescription
+      betType
+      yesParticipants
+      noParticipants
+      validators
+      validator
+      endTime
+      participants
+      yesPool
+      noPool
+      creator
+      outCome
+      claimWaitTime
+    }
+  }
+`;
+
+export const GET_AWAITING_ACCEPT_BETS = gql`
+  query GetAwaitingAcceptBets($address: Bytes) {
+    bets(
+      where: { and: [{ accepted: false }, { validator: $address }] }
+      orderBy: endTime
+      orderDirection: desc
+    ) {
+      betID
+      betDescription
+      betType
+      yesParticipants
+      noParticipants
+      validators
+      validator
+      endTime
+      participants
+      yesPool
+      noPool
+      creator
+      outCome
+      claimWaitTime
+    }
+  }
+`;
+
+export const BET_TO_REPORT = gql`
+  query GetBetsToReport($betID: BigInt) {
+    bets(where: { betID: $betID }, orderBy: endTime, orderDirection: desc) {
+      betID
+      betDescription
+      betType
+      yesParticipants
+      noParticipants
+      validators
+      endTime
+      participants
+      yesPool
+      noPool
+      creator
+      outCome
+      validator
+    }
+  }
+`;
+
+export const GET_REPORTED_BETS = gql`
+  query GetReportedBets {
+    bets(
+      where: { betType: true, currentlyChallenged: true }
+      orderBy: endTime
+      orderDirection: desc
+    ) {
+      betID
+      betDescription
+      betType
+      yesParticipants
+      noParticipants
+      validators
+      endTime
+      participants
+      yesPool
+      noPool
+      creator
+      outCome
+      validator
+      currentlyChallenged
+      reportDescription
+      reporter
+      support
+      oppose
     }
   }
 `;

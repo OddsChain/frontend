@@ -1,4 +1,3 @@
-import { AWAITING_VALIDATED_BETS } from "@/fakeData";
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
 import { ODDS_ADDRESS, truncateAddr } from "@/utils";
@@ -16,9 +15,6 @@ export const ValidateBet = () => {
   const [selecetdBet, setSelectedBet] = useState();
   const [userChoice, setUserChoice] = useState("");
 
-  // private validator management
-  const [privateValidators, setPrivateValidators] = useState([]);
-
   ///////// SMART CONTRACT READ FUNCTIONS ///////////
 
   // GET CURRENT TIMESTAMP
@@ -28,6 +24,15 @@ export const ValidateBet = () => {
     functionName: "getCurrentTimeStamp",
   });
 
+  // GET VALIDATOR ADDRESSES
+  const { data: privateValidatorAddress } = useContractRead({
+    address: ODDS_ADDRESS,
+    abi: ODDS_ABI,
+    functionName: "getValidators",
+    // @ts-ignore
+    args: [selecetdBet && selecetdBet.betID],
+  });
+
   ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
 
   const { config: validateBetConfig, error: validateBetErr } =
@@ -35,13 +40,10 @@ export const ValidateBet = () => {
       address: ODDS_ADDRESS,
       abi: ODDS_ABI,
       functionName: "validateBet",
+      // @ts-ignore
       args: [selecetdBet && selecetdBet.betID, userChoice],
     });
   const { write: validateBet } = useContractWrite(validateBetConfig);
-
-  if (validateBetErr) {
-    console.log("ERRRR", validateBetErr);
-  }
 
   // APOLLO QUERY - GET OPEN BETS
   const { data: AWAITING_VALIDATED_BETS } = useQuery(
@@ -81,6 +83,7 @@ export const ValidateBet = () => {
             {AWAITING_VALIDATED_BETS &&
             AWAITING_VALIDATED_BETS.bets &&
             AWAITING_VALIDATED_BETS.bets.length > 0 ? (
+              // @ts-ignore
               AWAITING_VALIDATED_BETS.bets.map((bet, index) => {
                 return (
                   <div
@@ -166,7 +169,9 @@ export const ValidateBet = () => {
 
                   <p>
                     {calculateYesPercentage(
+                      // @ts-ignore
                       selecetdBet.yesParticipants,
+                      // @ts-ignore
                       selecetdBet.noParticipants
                     )}{" "}
                     %
@@ -177,7 +182,9 @@ export const ValidateBet = () => {
                   <span>No Percentage</span>
                   <p>
                     {calculateYesPercentage(
+                      // @ts-ignore
                       selecetdBet.noParticipants,
+                      // @ts-ignore
                       selecetdBet.yesParticipants
                     )}{" "}
                     %
@@ -187,7 +194,7 @@ export const ValidateBet = () => {
                 <div className={styles.selectedBetStat}>
                   <span>Validators</span>
                   {/* @ts-ignore */}
-                  <p>{selecetdBet.validators.length}</p>
+                  <p>{selecetdBet.validators}</p>
                 </div>
 
                 <div className={styles.selectedBetStat}>
@@ -226,6 +233,31 @@ export const ValidateBet = () => {
                   {/* @ts-ignore */}
                   <p>{truncateAddr(selecetdBet.creator)}</p>
                 </div>
+
+                {/* @ts-ignore */}
+                {selecetdBet.betType ? (
+                  <div className={styles.selectedBetStat}>
+                    <span>Validator Address</span>
+                    {/* @ts-ignore */}
+                    <p>{truncateAddr(selecetdBet.validator)}</p>
+                  </div>
+                ) : (
+                  <div className={styles.selectedBetStat}>
+                    <span>Validator Address's</span>
+                    <div className={styles.validatorList}>
+                      {/* @ts-ignore */}
+                      {privateValidatorAddress &&
+                        // @ts-ignore
+                        privateValidatorAddress.map((validator, index) => {
+                          return (
+                            <p>
+                              {index + 1}. {truncateAddr(validator)}
+                            </p>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className={styles.joinBet}>

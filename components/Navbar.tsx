@@ -41,6 +41,7 @@ export const Navbar = () => {
           <a href="/bets">Bets</a>
           <a href="/validators">Validators</a>
           <a href="/account">Account</a>
+          <a href="/faucet">Faucet</a>
         </div>
       )}
 

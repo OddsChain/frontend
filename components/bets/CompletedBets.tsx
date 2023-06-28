@@ -1,11 +1,6 @@
 import styles from "../../styles/components/bets/Bets.module.css";
 import { useState } from "react";
-import {
-  BET_CREATION_FEE,
-  ODDS_ADDRESS,
-  getBetEndDate,
-  truncateAddr,
-} from "@/utils";
+import { ODDS_ADDRESS, getBetEndDate, truncateAddr } from "@/utils";
 import {
   useAccount,
   useContractRead,
@@ -19,30 +14,6 @@ import { GET_COMPLETED_BETS } from "@/queries";
 export const CompletedBets = () => {
   const [selectedBetIndex, setSelectedBetIndex] = useState<number>(0);
   const [selecetdBet, setSelectedBet] = useState();
-  const [betType, setBetType] = useState<boolean>(false);
-  const [betEndTime, setBetEndTime] = useState<string>();
-
-  // private validator management
-  const [privateValidators, setPrivateValidators] = useState([]);
-  const [validatorInput, setValidatorInput] = useState("");
-  const [isCollectionComplete, setCollectionComplete] = useState(false);
-
-  const handleAddValidator = () => {
-    if (privateValidators.length < 3) {
-      // @ts-ignore
-      setPrivateValidators((prevValidators) => [
-        // @ts-ignore
-        ...prevValidators,
-        validatorInput,
-      ]);
-
-      if (privateValidators.length + 1 == 3) {
-        setCollectionComplete(true);
-      }
-    }
-  };
-
-  const [popUp, setPopUp] = useState<boolean>(false);
 
   const { address } = useAccount();
 
@@ -55,20 +26,25 @@ export const CompletedBets = () => {
     functionName: "getCurrentTimeStamp",
   });
 
+  // GET IS WINNER
   const { data: isWinner } = useContractRead({
     address: ODDS_ADDRESS,
     abi: ODDS_ABI,
     functionName: "getIsWinner",
+    // @ts-ignore
     args: [selecetdBet && selecetdBet.betID, address],
   });
 
+  // GET USER WINNINGS
   const { data: amountWon } = useContractRead({
     address: ODDS_ADDRESS,
     abi: ODDS_ABI,
     functionName: "getUserWinnings",
+    // @ts-ignore
     args: [selecetdBet && selecetdBet.betID, address],
   });
 
+  // GET REQUIRED NUMBER OF VALIDATORS
   const { data: requiredNumberOfValidators } = useContractRead({
     address: ODDS_ADDRESS,
     abi: ODDS_ABI,
@@ -77,21 +53,30 @@ export const CompletedBets = () => {
 
   ///////// SMART CONTRACT WRITE FUNCTIONS ///////////
 
+  // CLAIM BET WINNINGS
   const { config: claimWinningConfig, error: claimErr } =
     usePrepareContractWrite({
       address: ODDS_ADDRESS,
       abi: ODDS_ABI,
       functionName: "claimSingleBetWinnings",
+      // @ts-ignore
       args: [selecetdBet && selecetdBet.betID],
     });
   const { write: claimWinning } = useContractWrite(claimWinningConfig);
 
-  // APOLLO QUERY - GET OPEN BETS
-  const {
-    loading,
-    error,
-    data: COMPLETED_BETS,
-  } = useQuery(GET_COMPLETED_BETS, {
+  // CLAIM REFUND
+  const { config: claimRefundConfig, error: refundErr } =
+    usePrepareContractWrite({
+      address: ODDS_ADDRESS,
+      abi: ODDS_ABI,
+      functionName: "claimBetRefund",
+      // @ts-ignore
+      args: [selecetdBet && selecetdBet.betID],
+    });
+  const { write: claimRefund } = useContractWrite(claimRefundConfig);
+
+  // APOLLO QUERY - GET COMPLETED BETS
+  const { data: COMPLETED_BETS } = useQuery(GET_COMPLETED_BETS, {
     // @ts-ignore
     variables: { currentTimestamp: parseInt(currentTimestamp) },
   });
@@ -112,22 +97,20 @@ export const CompletedBets = () => {
     }
   };
 
-  // TEST VARIABLES
-
   return (
     <main className={styles.main}>
-      <div className={popUp ? styles.openBetsBlur : styles.openBets}>
+      <div className={styles.openBets}>
         {/* LEFT */}
         <div className={styles.left}>
           <div className={styles.title}>
             <h3>Completed Bets</h3>
-            <img src="/icons/plus.jpg" onClick={() => setPopUp(true)} />
           </div>
 
           <div className={styles.bets}>
             {COMPLETED_BETS &&
             COMPLETED_BETS.bets &&
             COMPLETED_BETS.bets.length > 0 ? (
+              // @ts-ignore
               COMPLETED_BETS.bets.map((bet, index) => {
                 return (
                   <div
@@ -167,7 +150,7 @@ export const CompletedBets = () => {
                 );
               })
             ) : (
-              <p>No completed bets</p>
+              <p className="emptyList">No completed bets</p>
             )}
           </div>
         </div>
@@ -202,7 +185,9 @@ export const CompletedBets = () => {
 
                   <p>
                     {calculateYesPercentage(
+                      // @ts-ignore
                       selecetdBet.yesParticipants,
+                      // @ts-ignore
                       selecetdBet.noParticipants
                     )}{" "}
                     %
@@ -213,7 +198,9 @@ export const CompletedBets = () => {
                   <span>No Percentage</span>
                   <p>
                     {calculateYesPercentage(
+                      // @ts-ignore
                       selecetdBet.noParticipants,
+                      // @ts-ignore
                       selecetdBet.yesParticipants
                     )}{" "}
                     %
@@ -272,6 +259,7 @@ export const CompletedBets = () => {
                       <p>
                         {/* @ts-ignore */}
                         {(selecetdBet.support * 100) /
+                          // @ts-ignore
                           requiredNumberOfValidators}
                         %
                       </p>
@@ -282,6 +270,7 @@ export const CompletedBets = () => {
                       <p>
                         {/* @ts-ignore */}
                         {(selecetdBet.oppose * 100) /
+                          // @ts-ignore
                           requiredNumberOfValidators}
                         %
                       </p>
@@ -311,10 +300,11 @@ export const CompletedBets = () => {
                 {currentTimestamp && (
                   <div className={styles.selectedBetStat}>
                     <span>Claim Time Left</span>
-                    {/* @ts-ignore */}
                     <p>
                       {getBetEndDate(
+                        // @ts-ignore
                         selecetdBet.claimWaitTime.toString() -
+                          // @ts-ignore
                           currentTimestamp.toString()
                       )}
                     </p>
@@ -323,16 +313,40 @@ export const CompletedBets = () => {
               </div>
 
               {/* @ts-ignore */}
-              {currentTimestamp > selecetdBet.claimWaitTime && (
+              {currentTimestamp.toString() > selecetdBet.claimWaitTime &&
+                // @ts-ignore
+                selecetdBet.reportOutcome == 0 && (
+                  <div className={styles.amountWonAndClaimWinnings}>
+                    <>
+                      {isWinner == true && amountWon && (
+                        <p className={styles.amountWon}>
+                          Amount Won: {/* @ts-ignore */}
+                          <span>{amountWon.toString() / 10 ** 18} Odds</span>
+                        </p>
+                      )}
+                    </>
+
+                    <button
+                      className={styles.claimWinnings}
+                      disabled={!claimWinning}
+                      onClick={() => claimWinning?.()}
+                    >
+                      Claim Winnings
+                    </button>
+                  </div>
+                )}
+
+              {/* @ts-ignore */}
+              {selecetdBet.reportOutcome == 1 && (
                 <div className={styles.amountWonAndClaimWinnings}>
-                  {/* @ts-ignore */}
-                  {isWinner == true && amountWon && (
-                    <p className={styles.amountWon}>
-                      {/* @ts-ignore */}
-                      Amount Won:{" "}
-                      <span>{amountWon.toString() / 10 ** 18} Odds</span>
-                    </p>
-                  )}
+                  <>
+                    {isWinner == true && amountWon && (
+                      <p className={styles.amountWon}>
+                        Amount Won: {/* @ts-ignore */}
+                        <span>{amountWon.toString() / 10 ** 18} Odds</span>
+                      </p>
+                    )}
+                  </>
 
                   <button
                     className={styles.claimWinnings}
@@ -344,144 +358,52 @@ export const CompletedBets = () => {
                 </div>
               )}
 
-              <p className="error">
-                {claimErr?.message.includes("#06") &&
-                  "You did not partake in this bet"}
-
-                {claimErr?.message.includes("#12") &&
-                  "You have already claimed your winnings"}
-
-                {claimErr?.message.includes("#08") &&
-                  "You did not win this bet"}
-              </p>
-
               {/* @ts-ignore */}
-              {selecetdBet.currentlyChallenged == false &&
-                // @ts-ignore
-                selecetdBet.reportOutcome == 2 &&
-                // @ts-ignore
-                currentTimestamp > selecetdBet.claimWaitTime &&
-                // @ts-ignore
-                selecetdBet.currentlyChallenged == false && (
-                  <div className={styles.amountWonAndClaimWinnings}>
-                    {/* @ts-ignore */}
-                    {isWinner == true && amountWon && (
-                      <p className={styles.amountWon}>Claim Refund</p>
-                    )}
-
-                    <button className={styles.claimWinnings}>
-                      Claim Refund
-                    </button>
-                  </div>
-                )}
+              {selecetdBet.reportOutcome == 2 && (
+                <div className={styles.refund} style={{ marginTop: "30px" }}>
+                  <p>
+                    Bet has been sucessfully challenged. Validator Made The
+                    Wrong Decision. All Bet Participants are valid for a refund!
+                  </p>
+                  <button
+                    className={styles.claimWinnings}
+                    disabled={!claimRefund}
+                    onClick={() => claimRefund?.()}
+                  >
+                    Claim Refund
+                  </button>
+                </div>
+              )}
 
               {/* @ts-ignore */}
               {selecetdBet.currentlyChallenged == true && (
                 <div className={styles.challenged}>
                   <img src="/icons/loading.png" className={styles.loading} />
                   <p>
-                    Bet is currently being challenged. Cant claim winnings if
-                    won, until validation challenge is over.
+                    Other Validators are currrently challenging the outcome of
+                    this bet. Be patient until voting is over and the fate of
+                    the bet would be decided.
                   </p>
                 </div>
               )}
-              {/* @ts-ignore */}
-              {selecetdBet.currentlyChallenged == false &&
-                // @ts-ignore
-                selecetdBet.reportOutcome == 2 && (
-                  <div className={styles.challenged}>
-                    <img src="/icons/loading.png" className={styles.loading} />
-                    <p>
-                      Bet has been challenged. Validator Made The Wrong
-                      Decision. Claim your refund.
-                    </p>
-                  </div>
-                )}
+
+              <p className="error">
+                {claimErr?.message.includes("#12") &&
+                  "You have already claimed your winnings"}
+
+                {claimErr?.message.includes("#08") &&
+                  "You did not win this bet"}
+
+                {refundErr?.message.includes("#06") &&
+                  "You did not partake in this bet"}
+
+                {refundErr?.message.includes("#28") &&
+                  "You have already claimed your refund"}
+              </p>
             </div>
           )}
         </div>
       </div>
-
-      {popUp && (
-        <div className={styles.createPopUp}>
-          <div className={styles.popUpTitle}>
-            <h3>Create Bet</h3>
-            <img src="/icons/cancel.png" onClick={() => setPopUp(false)} />
-          </div>
-
-          <div className={styles.popUpBetType}>
-            <p>Bet Type</p>
-
-            <div className={styles.options}>
-              <button
-                className={styles.public}
-                onClick={() => setBetType(true)}
-              >
-                Public
-              </button>
-              <button
-                className={styles.private}
-                onClick={() => setBetType(false)}
-              >
-                Private
-              </button>
-              <p>
-                Selected: <span>{betType ? "Public" : "Private"}</span>
-              </p>
-            </div>
-          </div>
-
-          {betType == true && (
-            <p className={styles.betCreationFee}>
-              Bet Creation Fee: <span>{BET_CREATION_FEE / 10 ** 18} </span> GLMR
-            </p>
-          )}
-
-          <div className={styles.popUpDescription}>
-            <p>Bet Description</p>
-            <textarea />
-          </div>
-
-          {betType == false && (
-            <div className={styles.popUpValidators}>
-              <p>Validators</p>
-
-              <div className={styles.popUpValidatorsInput}>
-                <input
-                  onChange={(e) => setValidatorInput(e.target.value)}
-                  disabled={isCollectionComplete}
-                />
-                <button onClick={handleAddValidator}>Add</button>
-                <button onClick={() => setPrivateValidators([])}>Clear</button>
-              </div>
-
-              <div className={styles.addedValidators}>
-                {privateValidators.map((validator, index) => {
-                  return (
-                    <p>
-                      {index + 1}. {validator}
-                    </p>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className={styles.betEntranceTime}>
-            <p>Bet Entrance End Time</p>
-
-            <div className={styles.inputAndDisplay}>
-              <input
-                onChange={(e) => setBetEndTime(e.target.value)}
-                type="number"
-              />
-              {betEndTime && <p>{getBetEndDate(parseInt(betEndTime))}</p>}
-            </div>
-          </div>
-
-          <button className={styles.createButton}>Create Bet</button>
-        </div>
-      )}
     </main>
   );
 };

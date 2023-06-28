@@ -50,7 +50,10 @@ export default function Home() {
               private bets and public validators for public ones. Earn & Start
               betting limitlessly!
             </p>
-            <a href="" className={styles.getStarted}>
+            <a
+              href="https://francis-4.gitbook.io/odds/"
+              className={styles.getStarted}
+            >
               Get Started &gt;
             </a>
           </div>

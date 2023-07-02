@@ -117,7 +117,7 @@ export const AwaitingAcceptance = () => {
               </div>
 
               <div className={styles.awaitingAcceptanceDetails}>
-                <img src="/icons/loading.png" />
+                <div className="loader"></div>
                 <h3>Note</h3>
                 {/* @ts-ignore */}
                 {selecetdBet.validator == ADDRESS_ZERO ? (

@@ -77,10 +77,10 @@ Sections in the smart contract that implements this
 
 # LINKS
 
-Live website - https://courageous-kheer-634a82.netlify.app/
-Youtube Video -
-Project Github - https://github.com/orgs/OddsChain/repositories
-Smart contract repo - https://github.com/OddsChain/smart_contracts
-Frontend Repo - https://github.com/OddsChain/frontend
-Subgraph Repo - https://github.com/OddsChain/subgraph
-Documentation - https://francis-4.gitbook.io/odds/
+- Live website - https://courageous-kheer-634a82.netlify.app/
+- Youtube Video -
+- Project Github - https://github.com/orgs/OddsChain/repositories
+- Smart contract repo - https://github.com/OddsChain/smart_contracts
+- Frontend Repo - https://github.com/OddsChain/frontend
+- Subgraph Repo - https://github.com/OddsChain/subgraph
+- Documentation - https://francis-4.gitbook.io/odds/

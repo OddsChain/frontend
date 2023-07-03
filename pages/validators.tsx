@@ -14,6 +14,7 @@ import { ADDRESS_ZERO } from "@/utils";
 
 export default function Validators() {
   const [selectedSection, setSelectedSection] = useState<number>(1);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const connector = new MetaMaskConnector();
   const { connect, error, isLoading, pendingConnector } = useConnect();
   const { address } = useAccount({
@@ -34,6 +35,18 @@ export default function Validators() {
     if (connected != ADDRESS_ZERO) connect({ connector });
   }, []);
 
+  function handleResize() {
+    setIsSmallScreen(window.innerWidth <= 1100);
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   // TEST DATA
 
   return (
@@ -44,65 +57,73 @@ export default function Validators() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.png" />
       </Head>
-      <main className={styles.landingPage}>
-        <Navbar />
 
-        {/* bets bar */}
-        <div className={styles.betsBar}>
-          <p
-            onClick={() => setSelectedSection(1)}
-            className={
-              selectedSection == 1 ? styles.selected : styles.notSelected
-            }
-          >
-            Become A Validator
-          </p>
-          <p
-            onClick={() => setSelectedSection(2)}
-            className={
-              selectedSection == 2 ? styles.selected : styles.notSelected
-            }
-          >
-            Accept / Reject Bet
-          </p>
-          <p
-            onClick={() => setSelectedSection(3)}
-            className={
-              selectedSection == 3 ? styles.selected : styles.notSelected
-            }
-          >
-            Validate Bet
-          </p>
-          <p
-            onClick={() => setSelectedSection(4)}
-            className={
-              selectedSection == 4 ? styles.selected : styles.notSelected
-            }
-          >
-            Report Bet
-          </p>
-          <p
-            onClick={() => setSelectedSection(5)}
-            className={
-              selectedSection == 5 ? styles.selected : styles.notSelected
-            }
-          >
-            Vote
-          </p>
+      {isSmallScreen ? (
+        <div className="smallScreen">
+          <p>Screen Size Too Small</p>
+          <span>Switch To A Bigger Device</span>
         </div>
+      ) : (
+        <main className={styles.landingPage}>
+          <Navbar />
 
-        {/* Handle The Selected Section */}
+          {/* bets bar */}
+          <div className={styles.betsBar}>
+            <p
+              onClick={() => setSelectedSection(1)}
+              className={
+                selectedSection == 1 ? styles.selected : styles.notSelected
+              }
+            >
+              Become A Validator
+            </p>
+            <p
+              onClick={() => setSelectedSection(2)}
+              className={
+                selectedSection == 2 ? styles.selected : styles.notSelected
+              }
+            >
+              Accept / Reject Bet
+            </p>
+            <p
+              onClick={() => setSelectedSection(3)}
+              className={
+                selectedSection == 3 ? styles.selected : styles.notSelected
+              }
+            >
+              Validate Bet
+            </p>
+            <p
+              onClick={() => setSelectedSection(4)}
+              className={
+                selectedSection == 4 ? styles.selected : styles.notSelected
+              }
+            >
+              Report Bet
+            </p>
+            <p
+              onClick={() => setSelectedSection(5)}
+              className={
+                selectedSection == 5 ? styles.selected : styles.notSelected
+              }
+            >
+              Vote
+            </p>
+          </div>
 
-        {selectedSection == 1 && <BecomeAValidator />}
+          {/* Handle The Selected Section */}
 
-        {selectedSection == 2 && <AcceptRejectBet />}
+          {selectedSection == 1 && <BecomeAValidator />}
 
-        {selectedSection == 3 && <ValidateBet />}
+          {selectedSection == 2 && <AcceptRejectBet />}
 
-        {selectedSection == 4 && <ReportBet />}
+          {selectedSection == 3 && <ValidateBet />}
 
-        {selectedSection == 5 && <Vote />}
-      </main>
+          {selectedSection == 4 && <ReportBet />}
+
+          {selectedSection == 5 && <Vote />}
+        </main>
+      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ export default function Account() {
 
   const connector = new MetaMaskConnector();
   const { connect, error, isLoading, pendingConnector } = useConnect();
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const { address } = useAccount({
     onConnect({ address }) {
       // @ts-ignore
@@ -30,6 +31,18 @@ export default function Account() {
     if (connected != ADDRESS_ZERO) connect({ connector });
   }, []);
 
+  function handleResize() {
+    setIsSmallScreen(window.innerWidth <= 1100);
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -38,33 +51,41 @@ export default function Account() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.png" />
       </Head>
-      <main className={styles.landingPage}>
-        <Navbar />
 
-        {/* bets bar */}
-        <div className={styles.betsBar}>
-          <p
-            onClick={() => setSelectedSection(1)}
-            className={
-              selectedSection == 1 ? styles.selected : styles.notSelected
-            }
-          >
-            Account Details
-          </p>
-          <p
-            onClick={() => setSelectedSection(2)}
-            className={
-              selectedSection == 2 ? styles.selected : styles.notSelected
-            }
-          >
-            My Bets
-          </p>
+      {isSmallScreen ? (
+        <div className="smallScreen">
+          <p>Screen Size Too Small</p>
+          <span>Switch To A Bigger Device</span>
         </div>
+      ) : (
+        <main className={styles.landingPage}>
+          <Navbar />
 
-        {/* Handle The Selected Section */}
+          {/* bets bar */}
+          <div className={styles.betsBar}>
+            <p
+              onClick={() => setSelectedSection(1)}
+              className={
+                selectedSection == 1 ? styles.selected : styles.notSelected
+              }
+            >
+              Account Details
+            </p>
+            <p
+              onClick={() => setSelectedSection(2)}
+              className={
+                selectedSection == 2 ? styles.selected : styles.notSelected
+              }
+            >
+              My Bets
+            </p>
+          </div>
 
-        {selectedSection == 1 && <AccountDetails />}
-      </main>
+          {/* Handle The Selected Section */}
+
+          {selectedSection == 1 && <AccountDetails />}
+        </main>
+      )}
     </>
   );
 }

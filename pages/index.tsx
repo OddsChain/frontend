@@ -4,9 +4,10 @@ import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 import { useAccount, useConnect } from "wagmi";
 import { Navbar } from "@/components/Navbar";
 import { ADDRESS_ZERO } from "@/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const connector = new MetaMaskConnector();
   const { connect, error, isLoading, pendingConnector } = useConnect();
   const { address } = useAccount({
@@ -27,6 +28,18 @@ export default function Home() {
     if (connected != ADDRESS_ZERO) connect({ connector });
   }, []);
 
+  function handleResize() {
+    setIsSmallScreen(window.innerWidth <= 1100);
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -35,38 +48,45 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.png" />
       </Head>
-      <main className={styles.landingPage}>
-        <Navbar />
+      {isSmallScreen ? (
+        <div className="smallScreen">
+          <p>Screen Size Too Small</p>
+          <span>Switch To A Bigger Device</span>
+        </div>
+      ) : (
+        <main className={styles.landingPage}>
+          <Navbar />
 
-        <div className={styles.hero}>
-          <div className={styles.txt}>
-            <p className={styles.topText}>Bet on Your Terms:</p>
-            <p className={styles.middleText}>
-              Where Your Imagination Sets the Betting Stage
-            </p>
-            <p className={styles.bottomText}>
-              Create any bet of your choice not being restricted to bets
-              provided by the application, have private validators for your
-              private bets and public validators for public ones. Earn & Start
-              betting limitlessly!
-            </p>
-            <a
-              href="https://francis-4.gitbook.io/odds/"
-              className={styles.getStarted}
-            >
-              Get Started &gt;
-            </a>
+          <div className={styles.hero}>
+            <div className={styles.txt}>
+              <p className={styles.topText}>Bet on Your Terms:</p>
+              <p className={styles.middleText}>
+                Where Your Imagination Sets the Betting Stage
+              </p>
+              <p className={styles.bottomText}>
+                Create any bet of your choice not being restricted to bets
+                provided by the application, have private validators for your
+                private bets and public validators for public ones. Start
+                betting limitlessly!
+              </p>
+              <a
+                href="https://francis-4.gitbook.io/odds/"
+                className={styles.getStarted}
+              >
+                Learn More &gt;
+              </a>
+            </div>
+
+            <img src="/illustrations/heroImage.jpg" />
           </div>
 
-          <img src="/illustrations/heroImage.jpg" />
-        </div>
-
-        <div className={styles.footer}>
-          <a href="https://www.freepik.com/free-vector/stability-concept-illustration_44954733.htm#&position=0&from_view=search&track=ais">
-            Image by storyset on Freepik
-          </a>
-        </div>
-      </main>
+          <div className={styles.footer}>
+            <a href="https://www.freepik.com/free-vector/stability-concept-illustration_44954733.htm#&position=0&from_view=search&track=ais">
+              Image by storyset on Freepik
+            </a>
+          </div>
+        </main>
+      )}
     </>
   );
 }

@@ -15,6 +15,7 @@ import { ODDS_TOKEN_ABI } from "@/abi";
 export default function Faucet() {
   const [mintAmount, setMintAmount] = useState<number>();
   const [mintAddress, setMintAddress] = useState("");
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   const connector = new MetaMaskConnector();
   const { connect, error, isLoading, pendingConnector } = useConnect();
@@ -48,6 +49,18 @@ export default function Faucet() {
     if (connected != ADDRESS_ZERO) connect({ connector });
   }, []);
 
+  function handleResize() {
+    setIsSmallScreen(window.innerWidth <= 1100);
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -56,33 +69,41 @@ export default function Faucet() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.png" />
       </Head>
-      <main className={styles.landingPage}>
-        <Navbar />
 
-        <div className={styles.faucetPage}>
-          <h3>Facuet</h3>
-
-          <div className={styles.faucetInput}>
-            <p>Mint some ODDS Tokens</p>
-            {/* @ts-ignore */}
-            <input
-              // @ts-ignore
-              onChange={(e) => setMintAmount(e.target.value)}
-              placeholder="Amount"
-              type="number"
-            />
-            {/* @ts-ignore */}
-            <input
-              // @ts-ignore
-              onChange={(e) => setMintAddress(e.target.value)}
-              placeholder="Address"
-            />
-            <button disabled={!mint} onClick={() => mint?.()}>
-              Mint
-            </button>
-          </div>
+      {isSmallScreen ? (
+        <div className="smallScreen">
+          <p>Screen Size Too Small</p>
+          <span>Switch To A Bigger Device</span>
         </div>
-      </main>
+      ) : (
+        <main className={styles.landingPage}>
+          <Navbar />
+
+          <div className={styles.faucetPage}>
+            <h3>Facuet</h3>
+
+            <div className={styles.faucetInput}>
+              <p>Mint some ODDS Tokens</p>
+              {/* @ts-ignore */}
+              <input
+                // @ts-ignore
+                onChange={(e) => setMintAmount(e.target.value)}
+                placeholder="Amount"
+                type="number"
+              />
+              {/* @ts-ignore */}
+              <input
+                // @ts-ignore
+                onChange={(e) => setMintAddress(e.target.value)}
+                placeholder="Address"
+              />
+              <button disabled={!mint} onClick={() => mint?.()}>
+                Mint
+              </button>
+            </div>
+          </div>
+        </main>
+      )}
     </>
   );
 }

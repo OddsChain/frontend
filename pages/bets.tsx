@@ -12,6 +12,7 @@ import { ADDRESS_ZERO } from "@/utils";
 
 export default function Bets() {
   const [selectedSection, setSelectedSection] = useState<number>(1);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   const connector = new MetaMaskConnector();
   const { connect, error, isLoading, pendingConnector } = useConnect();
@@ -33,6 +34,18 @@ export default function Bets() {
     if (connected != ADDRESS_ZERO) connect({ connector });
   }, []);
 
+  function handleResize() {
+    setIsSmallScreen(window.innerWidth <= 1100);
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -41,55 +54,63 @@ export default function Bets() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.png" />
       </Head>
-      <main className={styles.landingPage}>
-        <Navbar />
 
-        {/* bets bar */}
-        <div className={styles.betsBar}>
-          <p
-            onClick={() => setSelectedSection(1)}
-            className={
-              selectedSection == 1 ? styles.selected : styles.notSelected
-            }
-          >
-            Open Bets
-          </p>
-          <p
-            onClick={() => setSelectedSection(2)}
-            className={
-              selectedSection == 2 ? styles.selected : styles.notSelected
-            }
-          >
-            Completed Bets
-          </p>
-          <p
-            onClick={() => setSelectedSection(3)}
-            className={
-              selectedSection == 3 ? styles.selected : styles.notSelected
-            }
-          >
-            Awaiting Validation
-          </p>
-          <p
-            onClick={() => setSelectedSection(4)}
-            className={
-              selectedSection == 4 ? styles.selected : styles.notSelected
-            }
-          >
-            Awaiting Acceptance
-          </p>
+      {isSmallScreen ? (
+        <div className="smallScreen">
+          <p>Screen Size Too Small</p>
+          <span>Switch To A Bigger Device</span>
         </div>
+      ) : (
+        <main className={styles.landingPage}>
+          <Navbar />
 
-        {/* Handle The Selected Section */}
+          {/* bets bar */}
+          <div className={styles.betsBar}>
+            <p
+              onClick={() => setSelectedSection(1)}
+              className={
+                selectedSection == 1 ? styles.selected : styles.notSelected
+              }
+            >
+              Open Bets
+            </p>
+            <p
+              onClick={() => setSelectedSection(2)}
+              className={
+                selectedSection == 2 ? styles.selected : styles.notSelected
+              }
+            >
+              Completed Bets
+            </p>
+            <p
+              onClick={() => setSelectedSection(3)}
+              className={
+                selectedSection == 3 ? styles.selected : styles.notSelected
+              }
+            >
+              Awaiting Validation
+            </p>
+            <p
+              onClick={() => setSelectedSection(4)}
+              className={
+                selectedSection == 4 ? styles.selected : styles.notSelected
+              }
+            >
+              Awaiting Acceptance
+            </p>
+          </div>
 
-        {selectedSection == 1 && <OpenBets />}
+          {/* Handle The Selected Section */}
 
-        {selectedSection == 2 && <CompletedBets />}
+          {selectedSection == 1 && <OpenBets />}
 
-        {selectedSection == 3 && <AwaitingValidatingBets />}
+          {selectedSection == 2 && <CompletedBets />}
 
-        {selectedSection == 4 && <AwaitingAcceptance />}
-      </main>
+          {selectedSection == 3 && <AwaitingValidatingBets />}
+
+          {selectedSection == 4 && <AwaitingAcceptance />}
+        </main>
+      )}
     </>
   );
 }

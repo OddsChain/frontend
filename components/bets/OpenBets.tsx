@@ -445,8 +445,20 @@ export const OpenBets = () => {
                   onChange={(e) => setValidatorInput(e.target.value)}
                   disabled={isCollectionComplete}
                 />
-                <button onClick={handleAddValidator}>Add</button>
-                <button onClick={() => setPrivateValidators([])}>Clear</button>
+                <button
+                  onClick={handleAddValidator}
+                  disabled={isCollectionComplete}
+                >
+                  Add
+                </button>
+                <button
+                  onClick={() => {
+                    setPrivateValidators([]);
+                    setCollectionComplete(false);
+                  }}
+                >
+                  Clear
+                </button>
               </div>
 
               <div className={styles.addedValidators}>

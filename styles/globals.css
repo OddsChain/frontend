@@ -84,3 +84,24 @@ textarea:focus {
     transform: rotate(360deg);
   }
 }
+
+.smallScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #0f332d;
+}
+
+.smallScreen p {
+  font-size: 30px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #4ada85;
+}
+
+.smallScreen span {
+  color: #fff;
+  font-size: 20px;
+}

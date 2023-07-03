@@ -47,7 +47,11 @@ export const Navbar = () => {
 
       {!isConnected ? (
         <div className={styles.endButtons}>
-          <a href="/" className={styles.docs}>
+          <a
+            href="https://francis-4.gitbook.io/odds/"
+            className={styles.docs}
+            target="_blank"
+          >
             Docs
           </a>
           <button
